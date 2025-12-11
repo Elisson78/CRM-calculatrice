@@ -30,9 +30,6 @@ const nextConfig = {
       },
     ];
   },
-  
-  // Output standalone para Docker/deploy
-  output: 'standalone',
 };
 
 module.exports = nextConfig;
