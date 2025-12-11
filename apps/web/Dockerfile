@@ -10,11 +10,10 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy source code and config files
-# Copy everything except what's in .dockerignore
 COPY . .
 
 # Ensure public directory exists
-RUN mkdir -p public/uploads || true
+RUN mkdir -p public/uploads
 
 # Build the application
 RUN npm run build
@@ -33,9 +32,15 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/tsconfig.json ./
 
-# Ensure public directory exists and copy it
-RUN mkdir -p public
-COPY --from=builder /app/public ./public 2>/dev/null || true
+# Ensure public directory exists (create empty if it doesn't exist in builder)
+RUN mkdir -p public/uploads
+
+# Copy public directory from builder (create empty if missing)
+# Using a simple approach: always try to copy, but ensure directory exists first
+RUN --mount=from=builder,source=/app/public,target=/tmp-source-public \
+    if [ -d /tmp-source-public ] && [ "$(ls -A /tmp-source-public 2>/dev/null)" ]; then \
+      cp -r /tmp-source-public/* ./public/; \
+    fi
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -49,9 +54,9 @@ USER nextjs
 # Expose port
 EXPOSE 3000
 
-ENV PORT 3000
-ENV NODE_ENV production
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV NODE_ENV=production
+ENV HOSTNAME="0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
