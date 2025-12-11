@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🧪 Testando conexão Stripe...');
+    
+    const stripe = getStripe();
     
     // Testar conexão básica
     const account = await stripe.accounts.retrieve();

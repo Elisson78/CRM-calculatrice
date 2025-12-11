@@ -68,18 +68,15 @@ export function getStripe(): Stripe {
       throw new Error('STRIPE_SECRET_KEY não está configurada');
     }
     stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-11-20.acacia',
+      apiVersion: '2025-11-17.clover',
       typescript: true,
     });
   }
   return stripeInstance;
 }
 
-// Export stripe instância para compatibilidade com códigos existentes
-export const stripe = getStripe();
-
-// Nota: Use getStripe() em vez de stripe() diretamente
-// para evitar inicialização prematura
+// Nota: Use getStripe() para inicializar o Stripe
+// Isso garante que a chave só seja lida quando necessário
 
 
 // Helper para criar ou obter customer

@@ -94,11 +94,14 @@ export async function authenticateUser(
   try {
     const user = await findUserByEmail(email);
     
-    if (!user || !user.password_hash) {
+    // Type assertion necessário porque findUserByEmail retorna com password_hash
+    const userWithPassword = user as (User & { password_hash?: string }) | null;
+    
+    if (!userWithPassword || !userWithPassword.password_hash) {
       return null;
     }
     
-    const isValid = await verifyPassword(password, user.password_hash);
+    const isValid = await verifyPassword(password, userWithPassword.password_hash);
     
     if (!isValid) {
       return null;
@@ -106,22 +109,25 @@ export async function authenticateUser(
     
     // Trouver l'entreprise si l'utilisateur est de type entreprise
     let entrepriseId: string | undefined;
-    if (user.role === 'entreprise') {
+    if (userWithPassword.role === 'entreprise') {
       const entreprise = await queryOne<{ id: string }>(
         'SELECT id FROM entreprises WHERE user_id = $1',
-        [user.id]
+        [userWithPassword.id]
       );
       entrepriseId = entreprise?.id;
     }
     
+    // Remover password_hash do objeto retornado
+    const { password_hash: _, ...userWithoutPassword } = userWithPassword;
+    
     const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role as 'admin' | 'entreprise' | 'client',
+      userId: userWithoutPassword.id,
+      email: userWithoutPassword.email,
+      role: userWithoutPassword.role as 'admin' | 'entreprise' | 'client',
       entrepriseId,
     });
     
-    return { user, token };
+    return { user: userWithoutPassword, token };
   } catch (error) {
     console.error('Erreur authentification:', error);
     return null;

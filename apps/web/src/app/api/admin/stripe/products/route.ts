@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe';
 import jwt from 'jsonwebtoken';
 
 export async function GET(request: NextRequest) {
@@ -23,6 +23,8 @@ export async function GET(request: NextRequest) {
         console.warn('Token inválido, permitindo acesso para teste:', jwtError);
       }
     }
+
+    const stripe = getStripe();
 
     // Buscar produtos do Stripe
     const products = await stripe.products.list({

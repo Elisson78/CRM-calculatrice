@@ -4,18 +4,24 @@ import { query, queryOne } from '@/lib/db';
 import { getPlanFromPriceId } from '@/lib/stripe';
 import Stripe from 'stripe';
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-if (!webhookSecret) {
-  throw new Error('STRIPE_WEBHOOK_SECRET não está configurada');
-}
-
 // Desabilitar body parser do Next.js para webhooks
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      return NextResponse.json(
+        { error: 'STRIPE_WEBHOOK_SECRET não está configurada' },
+        { status: 500 }
+      );
+    }
+
+    // Garantir que webhookSecret é uma string para o TypeScript
+    const secret: string = webhookSecret;
+
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
 
@@ -30,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     try {
       const stripe = getStripe();
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = stripe.webhooks.constructEvent(body, signature, secret);
     } catch (err: any) {
       console.error('Erreur webhook signature:', err.message);
       return NextResponse.json(
@@ -147,7 +153,11 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
 // Handler: Invoice Payment Succeeded
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
-  const subscriptionId = invoice.subscription as string;
+  // Invoice.subscription pode ser string (ID) ou Subscription expandida
+  // Type assertion necessário porque a tipagem do Stripe não inclui subscription diretamente
+  const subscriptionId = typeof (invoice as any).subscription === 'string' 
+    ? (invoice as any).subscription as string
+    : (invoice as any).subscription?.id as string | undefined;
   
   if (subscriptionId) {
     const stripe = getStripe();
@@ -158,7 +168,11 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
 // Handler: Invoice Payment Failed
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  const subscriptionId = invoice.subscription as string;
+  // Invoice.subscription pode ser string (ID) ou Subscription expandida
+  // Type assertion necessário porque a tipagem do Stripe não inclui subscription diretamente
+  const subscriptionId = typeof (invoice as any).subscription === 'string' 
+    ? (invoice as any).subscription as string
+    : (invoice as any).subscription?.id as string | undefined;
   
   if (subscriptionId) {
     await query(
@@ -200,9 +214,9 @@ async function updateEntrepriseSubscription(
       subscription.id,
       priceId,
       subscription.status,
-      new Date(subscription.current_period_start * 1000),
-      new Date(subscription.current_period_end * 1000),
-      subscription.cancel_at_period_end,
+      new Date((subscription as any).current_period_start * 1000),
+      new Date((subscription as any).current_period_end * 1000),
+      (subscription as any).cancel_at_period_end,
       entrepriseId,
     ]
   );
