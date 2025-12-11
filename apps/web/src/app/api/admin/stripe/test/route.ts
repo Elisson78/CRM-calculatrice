@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     console.error('❌ Erro ao conectar com Stripe:', error);
     return NextResponse.json({
       error: 'Erro ao conectar com Stripe',
-      details: error.message,
+      details: error instanceof Error ? error.message : 'Erro desconhecido',
       stripeConnected: false,
     }, { status: 500 });
   }
