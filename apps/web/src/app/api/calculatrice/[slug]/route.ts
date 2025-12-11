@@ -42,7 +42,11 @@ export async function GET(
   } catch (error) {
     console.error('Erreur API calculatrice:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { 
+        error: 'Erreur serveur',
+        details: error instanceof Error ? error.message : 'Erreur inconnue',
+        slug: params.slug
+      },
       { status: 500 }
     );
   }
