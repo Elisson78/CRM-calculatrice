@@ -38,13 +38,15 @@ export async function POST(request: NextRequest) {
       },
     });
     
-    // Définir le cookie
+    // Définir le cookie avec configuration pour production
+    const isProduction = process.env.NODE_ENV === 'production';
     response.cookies.set(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'lax' : 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 jours
       path: '/',
+      ...(isProduction && { domain: '.moovelabs.com' }),
     });
     
     return response;
