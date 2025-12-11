@@ -10,9 +10,11 @@ COPY package*.json ./
 RUN npm ci
 
 # Copy source code and config files
+# Copy everything except what's in .dockerignore
 COPY . .
-COPY tsconfig.json ./
-COPY next.config.js ./
+
+# Ensure public directory exists
+RUN mkdir -p public/uploads || true
 
 # Build the application
 RUN npm run build
@@ -28,9 +30,12 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application and required files
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/tsconfig.json ./
+
+# Ensure public directory exists and copy it
+RUN mkdir -p public
+COPY --from=builder /app/public ./public 2>/dev/null || true
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
