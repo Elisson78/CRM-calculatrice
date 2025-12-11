@@ -76,7 +76,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Erreur register:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      { 
+        error: 'Erreur serveur',
+        details: error instanceof Error ? error.message : 'Erreur inconnue'
+      },
       { status: 500 }
     );
   }
