@@ -14,6 +14,9 @@ COPY . .
 COPY tsconfig.json ./
 COPY next.config.js ./
 
+# Create public directory if it doesn't exist
+RUN mkdir -p public
+
 # Build the application
 RUN npm run build
 
@@ -28,9 +31,12 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Copy built application
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/tsconfig.json ./
+
+# Copy public directory if it exists, otherwise create empty one
+RUN mkdir -p public
+COPY --from=builder /app/public/ ./public/
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
