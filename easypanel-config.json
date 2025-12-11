@@ -1,0 +1,60 @@
+{
+  "projectName": "crm-calculateur",
+  "source": {
+    "type": "github",
+    "repository": "https://github.com/Elisson78/CRM-calculatrice.git",
+    "branch": "main",
+    "buildPath": "apps/web"
+  },
+  "build": {
+    "command": "npm install && npm run build",
+    "outputDirectory": ".next",
+    "installCommand": "npm install"
+  },
+  "runtime": {
+    "startCommand": "npm start",
+    "port": 3000,
+    "nodeVersion": "20.x"
+  },
+  "domains": [
+    {
+      "domain": "calculateur.moovelabs.com",
+      "ssl": true,
+      "redirect": true
+    }
+  ],
+  "environmentVariables": {
+    "NODE_ENV": "production",
+    "NEXT_PUBLIC_APP_URL": "https://calculateur.moovelabs.com",
+    "DATABASE_URL": "postgresql://postgres:Bradok41@72.62.36.167:5432/crm_demenagement?schema=public",
+    "DB_HOST": "72.62.36.167",
+    "DB_PORT": "5432",
+    "DB_NAME": "crm_demenagement",
+    "DB_USER": "postgres",
+    "DB_PASSWORD": "Bradok41",
+    "DB_SCHEMA": "public",
+    "JWT_SECRET": "moovelabs_crm_secret_2024",
+    "EMAIL_USER": "seu-email@gmail.com",
+    "EMAIL_PASS": "sua-senha-de-app",
+    "STRIPE_SECRET_KEY": "sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "STRIPE_PUBLISHABLE_KEY": "pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "STRIPE_PRICE_ID_BASIC": "price_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "STRIPE_PRICE_ID_PRO": "price_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "STRIPE_PRICE_ID_ENTERPRISE": "price_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "healthCheck": {
+    "path": "/api/health",
+    "interval": 30,
+    "timeout": 10
+  },
+  "resources": {
+    "memory": "2GB",
+    "cpu": "1",
+    "replicas": 1
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "maxSurge": 1,
+    "maxUnavailable": 0
+  }
+}
