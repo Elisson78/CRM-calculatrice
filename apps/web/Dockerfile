@@ -11,9 +11,8 @@ RUN npm ci
 
 # Copy source code and config files
 COPY . .
-
-# Ensure public directory exists
-RUN mkdir -p public/uploads
+COPY tsconfig.json ./
+COPY next.config.js ./
 
 # Build the application
 RUN npm run build
@@ -23,24 +22,15 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy the standalone server from builder
-# Next.js standalone includes minimal node_modules needed
-COPY --from=builder /app/.next/standalone ./
+# Copy package files and install production dependencies
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy static files
-COPY --from=builder /app/.next/static ./.next/static
-
-# Copy public directory
+# Copy built application
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-
-# Copy startup script
-COPY --from=builder /app/start.sh ./start.sh
-
-# Ensure public/uploads exists
-RUN mkdir -p public/uploads
-
-# Make startup script executable
-RUN chmod +x /app/start.sh
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/tsconfig.json ./
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -63,5 +53,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Start the application
-# Use startup script that checks multiple paths for compatibility
-CMD ["/app/start.sh"]
+CMD ["npm", "start"]
