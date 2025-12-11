@@ -61,6 +61,8 @@ NEXT_PUBLIC_APP_URL=https://calculateur.moovelabs.com
 NODE_ENV=production
 ```
 
+⚠️ **Importante**: Quando configurar no Easypanel, o DNS precisa apontar para o IP do Easypanel (não Hostinger).
+
 ### Email (Opcional)
 ```env
 RESEND_API_KEY=re_xxxxxxxxxxxxx
@@ -87,6 +89,11 @@ STRIPE_PRICE_ID_ENTERPRISE=price_xxxxxxxxxxxxx
 ```
 calculateur.moovelabs.com
 ```
+
+**Status**: ✅ Domínio já configurado e ativo
+- **IP**: 72.62.36.167 (Hostinger)
+- **DNS**: A record ativo
+- **TTL**: 5 min
 
 O Easypanel configurará automaticamente:
 - ✅ SSL/HTTPS (Let's Encrypt)
