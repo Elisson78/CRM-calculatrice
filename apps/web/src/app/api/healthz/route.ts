@@ -4,7 +4,8 @@ export async function GET() {
   return NextResponse.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
+    version: process.env.npm_package_version || '1.0.1',
     environment: process.env.NODE_ENV || 'development',
+    deploy_check: 'latest_commit_880ba7f',
   }, { status: 200 });
 }
