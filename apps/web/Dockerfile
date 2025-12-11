@@ -5,10 +5,14 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm ci --only=production
 
-# Copy source code
+# Install ALL dependencies (including dev) for build
+RUN npm ci
+
+# Copy source code and config files
 COPY . .
+COPY tsconfig.json ./
+COPY next.config.js ./
 
 # Build the application
 RUN npm run build
@@ -22,11 +26,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
-# Copy built application
+# Copy built application and required files
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/src ./src
+COPY --from=builder /app/tsconfig.json ./
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
