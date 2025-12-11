@@ -12,7 +12,7 @@
     "installCommand": "npm install"
   },
   "runtime": {
-    "startCommand": "npm start",
+    "startCommand": "node server.js",
     "port": 3000,
     "nodeVersion": "20.x"
   },
