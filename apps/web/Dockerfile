@@ -23,6 +23,9 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine AS production
 
+# Install curl for health check
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 # Copy package files and install production dependencies
@@ -54,9 +57,9 @@ ENV PORT=3000
 ENV NODE_ENV=production
 ENV HOSTNAME="0.0.0.0"
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+# Health check - use simple endpoint that doesn't require DB
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/api/healthz || exit 1
 
 # Start the application
 CMD ["npm", "start"]
