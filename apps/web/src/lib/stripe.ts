@@ -75,7 +75,10 @@ export function getStripe(): Stripe {
   return stripeInstance;
 }
 
-// Nota: Use getStripe() em vez de stripe diretamente
+// Export stripe instância para compatibilidade com códigos existentes
+export const stripe = getStripe();
+
+// Nota: Use getStripe() em vez de stripe() diretamente
 // para evitar inicialização prematura
 
 
