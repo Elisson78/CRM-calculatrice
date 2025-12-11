@@ -57,5 +57,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Start the application
-# For standalone output, use the standalone server directly
-CMD ["node", ".next/standalone/server.js"]
+# For standalone output, the server.js is at the root after copying standalone
+CMD ["node", "server.js"]
