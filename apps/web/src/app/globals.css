@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Couleurs par défaut - peuvent être surchargées par entreprise */
+  --color-primary: #1e3a5f;
+  --color-secondary: #2563eb;
+  --color-accent: #dc2626;
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+}
+
+/* Variables CSS pour personnalisation par entreprise */
+.theme-custom {
+  --color-primary: var(--entreprise-primary, #1e3a5f);
+  --color-secondary: var(--entreprise-secondary, #2563eb);
+  --color-accent: var(--entreprise-accent, #dc2626);
+}
+
+@layer base {
+  * {
+    @apply border-slate-200;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Scrollbar personnalisée */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+}
+
+@layer components {
+  /* Boutons */
+  .btn-primary {
+    @apply bg-primary-800 text-white px-6 py-3 rounded-lg font-medium 
+           hover:bg-primary-700 transition-colors duration-200
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-600 text-white px-6 py-3 rounded-lg font-medium 
+           hover:bg-secondary-700 transition-colors duration-200
+           focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-slate-200 
+           hover:shadow-md transition-shadow duration-200;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-3 border border-slate-300 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           placeholder:text-slate-400;
+  }
+
+  /* Onglets de catégorie */
+  .category-tab {
+    @apply px-6 py-3 font-semibold text-white uppercase tracking-wide
+           transition-all duration-200 cursor-pointer;
+  }
+
+  .category-tab.active {
+    @apply bg-primary-800;
+  }
+
+  .category-tab:not(.active) {
+    @apply bg-primary-600 hover:bg-primary-700;
+  }
+
+  /* Card de meuble */
+  .furniture-card {
+    @apply bg-slate-50 border border-slate-200 rounded-lg p-4
+           flex flex-col items-center gap-3
+           hover:border-primary-300 hover:bg-white
+           transition-all duration-200;
+  }
+
+  /* Compteur +/- */
+  .counter-btn {
+    @apply w-8 h-8 rounded-full flex items-center justify-center
+           transition-all duration-200 font-bold text-lg;
+  }
+
+  .counter-btn.minus {
+    @apply bg-red-100 text-red-600 hover:bg-red-200;
+  }
+
+  .counter-btn.plus {
+    @apply bg-blue-100 text-blue-600 hover:bg-blue-200;
+  }
+
+  /* Badge volume */
+  .volume-badge {
+    @apply inline-flex items-center px-4 py-2 rounded-full
+           bg-primary-800 text-white font-bold text-lg;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+}
+
