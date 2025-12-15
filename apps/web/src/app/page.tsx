@@ -1,81 +1,51 @@
 import Link from 'next/link';
 import { ArrowRight, Calculator, Building2, Users, BarChart3, Check, CreditCard, Zap, Crown } from 'lucide-react';
+import Header from '@/components/navigation/Header';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-800 via-primary-700 to-secondary-600">
       {/* Header */}
-      <header className="container mx-auto px-4 py-6">
-        <nav className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-primary-800 font-bold text-xl">M</span>
-            </div>
-            <span className="text-white font-bold text-xl">Moovelabs</span>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Link
-              href="/pricing"
-              className="text-white/80 hover:text-white transition-colors"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/login"
-              className="text-white/80 hover:text-white transition-colors"
-            >
-              Connexion
-            </Link>
-            <Link
-              href="/register"
-              className="bg-white text-primary-800 px-4 py-2 rounded-lg font-medium
-                         hover:bg-slate-100 transition-colors"
-            >
-              S'inscrire
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <Header />
       
       {/* Hero */}
-      <main className="container mx-auto px-4 py-16 md:py-24">
+      <main className="container mx-auto px-4 py-8 md:py-16 lg:py-24">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 px-2">
             Simplifiez vos devis de
-            <span className="text-secondary-300"> déménagement</span>
+            <span className="text-secondary-300 block sm:inline"> déménagement</span>
           </h1>
           
-          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-white/80 mb-6 md:mb-8 max-w-2xl mx-auto px-4">
             La plateforme SaaS complète pour les entreprises de déménagement. 
             Calculatrice de volume personnalisée, gestion des clients et devis automatiques.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center px-4">
             <Link
               href="/register"
               className="inline-flex items-center justify-center gap-2 bg-white text-primary-800 
-                         px-8 py-4 rounded-xl font-semibold text-lg
-                         hover:bg-slate-100 transition-colors shadow-lg"
+                         px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg
+                         hover:bg-slate-100 transition-colors shadow-lg w-full sm:w-auto"
             >
               Démarrer gratuitement
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5" />
             </Link>
             
             <Link
               href="/calculatrice/calculateur-demenagement"
               className="inline-flex items-center justify-center gap-2 bg-white/10 text-white 
-                         px-8 py-4 rounded-xl font-semibold text-lg
-                         hover:bg-white/20 transition-colors border border-white/30"
+                         px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg
+                         hover:bg-white/20 transition-colors border border-white/30 w-full sm:w-auto"
             >
-              <Calculator className="w-5 h-5" />
-              MooveLabs Calculateur
+              <Calculator className="w-4 sm:w-5 h-4 sm:h-5" />
+              <span className="hidden sm:inline">MooveLabs </span>Calculateur
             </Link>
           </div>
         </div>
         
         {/* Features */}
-        <div className="grid md:grid-cols-3 gap-8 mt-24 max-w-5xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mt-16 md:mt-24 max-w-5xl mx-auto">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center">
             <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Calculator className="w-7 h-7 text-white" />
@@ -117,17 +87,17 @@ export default function HomePage() {
         </div>
         
         {/* Pricing Section */}
-        <div className="mt-24">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <div className="mt-16 md:mt-24">
+          <div className="text-center mb-8 md:mb-12 px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 md:mb-4">
               Plans adaptés à votre entreprise
             </h2>
-            <p className="text-white/80 text-lg max-w-2xl mx-auto">
+            <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto">
               Choisissez le plan qui correspond à vos besoins. Tous incluent un essai gratuit de 14 jours.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
             {/* Basic Plan */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <div className="flex items-center gap-3 mb-4">
@@ -259,36 +229,36 @@ export default function HomePage() {
         </div>
         
         {/* Stats */}
-        <div className="flex flex-wrap justify-center gap-12 mt-24">
+        <div className="grid grid-cols-3 gap-4 md:gap-12 mt-16 md:mt-24 max-w-3xl mx-auto px-4">
           <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold text-white">48+</div>
-            <div className="text-white/70">Meubles catalogués</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">48+</div>
+            <div className="text-white/70 text-sm md:text-base">Meubles catalogués</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold text-white">5</div>
-            <div className="text-white/70">Catégories</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">5</div>
+            <div className="text-white/70 text-sm md:text-base">Catégories</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl md:text-5xl font-bold text-white">∞</div>
-            <div className="text-white/70">Devis illimités</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">∞</div>
+            <div className="text-white/70 text-sm md:text-base">Devis illimités</div>
           </div>
         </div>
       </main>
       
       {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 border-t border-white/10">
+      <footer className="container mx-auto px-4 py-6 md:py-8 border-t border-white/10">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/60 text-sm">
+          <p className="text-white/60 text-sm text-center md:text-left">
             © 2025 Moovelabs. Tous droits réservés.
           </p>
-          <div className="flex items-center gap-6">
-            <Link href="/privacy" className="text-white/60 hover:text-white text-sm">
+          <div className="flex items-center gap-4 md:gap-6 flex-wrap justify-center">
+            <Link href="/privacy" className="text-white/60 hover:text-white text-sm transition-colors">
               Confidentialité
             </Link>
-            <Link href="/terms" className="text-white/60 hover:text-white text-sm">
+            <Link href="/terms" className="text-white/60 hover:text-white text-sm transition-colors">
               CGU
             </Link>
-            <Link href="/contact" className="text-white/60 hover:text-white text-sm">
+            <Link href="/contact" className="text-white/60 hover:text-white text-sm transition-colors">
               Contact
             </Link>
           </div>
