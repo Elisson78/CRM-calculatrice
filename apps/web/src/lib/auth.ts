@@ -5,10 +5,16 @@ import { query, queryOne } from './db';
 import type { User } from '@/types/database';
 
 // Clé secrète pour JWT (OBLIGATOIRE en production)
-const JWT_SECRET = process.env.JWT_SECRET || (() => {
-  throw new Error('JWT_SECRET est requis. Veuillez définir cette variable d\'environnement.');
-})();
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = '7d';
+
+// Fonction pour obtenir et valider JWT_SECRET
+function getJWTSecret(): string {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET est requis. Veuillez définir cette variable d\'environnement.');
+  }
+  return JWT_SECRET;
+}
 
 // Nom du cookie d'authentification
 export const AUTH_COOKIE_NAME = 'moovelabs_auth_token';
@@ -34,13 +40,13 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 
 // Générer un token JWT
 export function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, getJWTSecret(), { expiresIn: JWT_EXPIRES_IN });
 }
 
 // Vérifier un token JWT
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return jwt.verify(token, getJWTSecret()) as JWTPayload;
   } catch {
     return null;
   }
