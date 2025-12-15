@@ -241,7 +241,102 @@ export default function DevisDetailPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+        
+        {/* Layout pour impression - en une colonne */}
+        <div className="print:block hidden">
+          {/* En-tête de devis pour impression */}
+          <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-xl font-bold text-slate-800">Devis {devis.numero}</h1>
+                <p className="text-sm text-slate-600">
+                  Demande le {formatDate(devis.created_at)}
+                  {devis.date_demenagement && (
+                    <span className="ml-4 text-primary-600 font-medium">
+                      Déménagement prévu le {new Date(devis.date_demenagement).toLocaleDateString('fr-FR')}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary-600">{parseFloat(String(devis.volume_total_m3 || 0)).toFixed(1)} m³</div>
+                <div className="text-sm text-slate-600">{devis.nombre_meubles} meubles • {devis.poids_total_kg} kg</div>
+                {devis.montant_estime && (
+                  <div className="text-lg font-bold text-green-600 mt-1">
+                    {devis.montant_estime.toFixed(2)} {devis.devise || 'EUR'}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Client et adresses en ligne */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-800 mb-2">Client</h3>
+                <p className="text-lg font-bold text-slate-800">{devis.client_nom}</p>
+                <p className="text-sm text-slate-600">{devis.client_email}</p>
+                {devis.client_telephone && (
+                  <p className="text-sm text-slate-600">{devis.client_telephone}</p>
+                )}
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-semibold text-red-600 mb-2">Départ</h3>
+                <p className="text-sm text-slate-800">{devis.adresse_depart}</p>
+                {devis.avec_ascenseur_depart && (
+                  <p className="text-xs text-slate-500">Avec ascenseur</p>
+                )}
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-semibold text-green-600 mb-2">Arrivée</h3>
+                <p className="text-sm text-slate-800">{devis.adresse_arrivee}</p>
+                {devis.avec_ascenseur_arrivee && (
+                  <p className="text-xs text-slate-500">Avec ascenseur</p>
+                )}
+              </div>
+            </div>
+            
+            {devis.observations && (
+              <div className="mt-4 p-3 bg-slate-50 rounded border">
+                <p className="text-xs font-medium text-slate-600 mb-1">Observations:</p>
+                <p className="text-sm text-slate-700">{devis.observations}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Liste des meubles compacte pour impression */}
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">Inventaire détaillé</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {Object.entries(meublesParCategorie).map(([categorie, items]) => (
+                <div key={categorie} className="mb-4">
+                  <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-2 bg-slate-100 px-2 py-1 rounded">
+                    {categorie}
+                  </h3>
+                  <div className="space-y-1">
+                    {items.map((m) => (
+                      <div key={m.id} className="flex justify-between items-center text-sm py-1">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 bg-slate-200 rounded-full flex items-center justify-center text-xs font-semibold">
+                            {m.quantite}
+                          </span>
+                          <span className="text-slate-800 text-xs">{m.meuble_nom}</span>
+                        </div>
+                        <span className="text-slate-600 text-xs">
+                          {(Number(m.quantite || 0) * Number(m.volume_unitaire_m3 || 0)).toFixed(2)} m³
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Layout normal pour écran */}
+        <div className="print:hidden grid lg:grid-cols-3 gap-8">
           {/* Colonne principale */}
           <div className="lg:col-span-2 space-y-6">
             {/* Informations client */}
