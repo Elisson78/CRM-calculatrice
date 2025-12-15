@@ -102,3 +102,11 @@ function getClientEmailTemplate(data: DevisEmailData): string {
       </table>
     </div>
     
+    <p>Nous vous contacterons dans les plus brefs délais pour vous proposer un devis personnalisé.</p>
+    
+    <p style="margin-bottom: 0;">Cordialement,<br><strong>L'équipe MooveLabs</strong></p>
+  </div>
+</body>
+</html>
+`;
+}

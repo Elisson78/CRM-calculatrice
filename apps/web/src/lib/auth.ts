@@ -5,13 +5,10 @@ import { query, queryOne } from './db';
 import type { User } from '@/types/database';
 
 // Clé secrète pour JWT (OBLIGATOIRE en production)
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = '7d';
-
-// Vérification que la clé secrète est définie
-if (!JWT_SECRET) {
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
   throw new Error('JWT_SECRET est requis. Veuillez définir cette variable d\'environnement.');
-}
+})();
+const JWT_EXPIRES_IN = '7d';
 
 // Nom du cookie d'authentification
 export const AUTH_COOKIE_NAME = 'moovelabs_auth_token';

@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 export async function GET() {
   try {
     // Test basic connection
-    const result = await query('SELECT NOW() as timestamp, version() as version');
+    const result = await query('SELECT NOW() as timestamp, version() as version') as Array<{timestamp: string, version: string}>;
     
     // Test tables exist
     const tables = await query(`
@@ -13,7 +13,7 @@ export async function GET() {
       WHERE table_schema = 'public' 
       AND table_name IN ('entreprises', 'categories_meubles', 'meubles')
       ORDER BY table_name
-    `);
+    `) as Array<{table_name: string}>;
     
     // Count records
     const stats = await query(`
@@ -21,13 +21,13 @@ export async function GET() {
         (SELECT COUNT(*) FROM entreprises) as entreprises,
         (SELECT COUNT(*) FROM categories_meubles) as categories,
         (SELECT COUNT(*) FROM meubles) as meubles
-    `);
+    `) as Array<{entreprises: number, categories: number, meubles: number}>;
     
     // Check specific company
     const company = await query(
       'SELECT nom, slug, actif FROM entreprises WHERE slug = $1',
       ['calculateur-demenagement']
-    );
+    ) as Array<{nom: string, slug: string, actif: boolean}>;
     
     return NextResponse.json({
       status: 'connected',
