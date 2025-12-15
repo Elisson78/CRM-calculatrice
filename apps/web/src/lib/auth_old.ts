@@ -4,14 +4,9 @@ import { cookies } from 'next/headers';
 import { query, queryOne } from './db';
 import type { User } from '@/types/database';
 
-// Clé secrète pour JWT (OBLIGATOIRE en production)
-const JWT_SECRET = process.env.JWT_SECRET;
+// Clé secrète pour JWT (à mettre dans .env en production)
+const JWT_SECRET = process.env.JWT_SECRET || 'moovelabs-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
-
-// Vérification que la clé secrète est définie
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET est requis. Veuillez définir cette variable d\'environnement.');
-}
 
 // Nom du cookie d'authentification
 export const AUTH_COOKIE_NAME = 'moovelabs_auth_token';
@@ -231,3 +226,6 @@ export async function getCurrentSession(): Promise<JWTPayload | null> {
     return null;
   }
 }
+
+
+

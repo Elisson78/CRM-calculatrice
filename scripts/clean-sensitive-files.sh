@@ -35,3 +35,4 @@ echo "📝 Próximos passos:"
 echo "  1. Verifique o que foi removido: git status"
 echo "  2. Commit as mudanças: git add . && git commit -m 'chore: remove sensitive files'"
 echo "  3. Verifique se .env.local não será commitado"
+

@@ -74,3 +74,9 @@ apps/web/public/uploads/*/
 logs/
 tmp/
 temp/
+
+*.key
+*.p12
+id_rsa*
+passwords*
+secrets*

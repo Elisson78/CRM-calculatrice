@@ -23,3 +23,4 @@ COMMENT ON COLUMN entreprises.subscription_status IS 'Status da assinatura (acti
 COMMENT ON COLUMN entreprises.subscription_current_period_start IS 'Início do período atual de cobrança';
 COMMENT ON COLUMN entreprises.subscription_current_period_end IS 'Fim do período atual de cobrança';
 COMMENT ON COLUMN entreprises.subscription_cancel_at_period_end IS 'Se a assinatura será cancelada no fim do período';
+

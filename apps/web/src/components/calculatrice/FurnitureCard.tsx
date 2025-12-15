@@ -119,3 +119,4 @@ export function FurnitureCard({ meuble, categorieNom }: FurnitureCardProps) {
 
 
 
+
