@@ -52,3 +52,5 @@ echo "  2. Verifique se .env.local não está versionado: git status"
 echo "  3. Commit as mudanças: git add . && git commit -m 'chore: prepare for deployment'"
 echo "  4. Push para GitHub: git push origin main"
 
+
+

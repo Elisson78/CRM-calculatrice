@@ -43,6 +43,14 @@ export interface Entreprise {
   titre_calculatrice: string;
   message_formulaire: string;
   
+  // Configuration SMTP
+  smtp_host: string | null;
+  smtp_port: number | null;
+  smtp_user: string | null;
+  smtp_password: string | null;
+  smtp_secure: boolean;
+  use_custom_smtp: boolean;
+  
   // Statut
   actif: boolean;
   plan: 'basic' | 'pro' | 'enterprise';

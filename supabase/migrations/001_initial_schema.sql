@@ -54,6 +54,14 @@ CREATE TABLE IF NOT EXISTS entreprises (
     template_email_client TEXT,
     template_email_entreprise TEXT,
     
+    -- Configuration SMTP personnalisée
+    smtp_host VARCHAR(255),
+    smtp_port INTEGER,
+    smtp_user VARCHAR(255),
+    smtp_password TEXT,
+    smtp_secure BOOLEAN DEFAULT TRUE,
+    use_custom_smtp BOOLEAN DEFAULT FALSE,
+    
     -- Configuration calculatrice
     titre_calculatrice VARCHAR(255) DEFAULT 'Simulateur de volume pour déménagement',
     message_formulaire TEXT DEFAULT 'Ces informations ne serviront qu''à l''édition de votre devis et ne seront JAMAIS transmises ou vendu à un tiers.',
@@ -379,6 +387,9 @@ COMMENT ON TABLE logs_activite IS 'Journal des activités pour audit';
 -- =====================================================
 -- FIN DE LA MIGRATION INITIALE
 -- =====================================================
+
+
+
 
 
 

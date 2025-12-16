@@ -18,7 +18,11 @@ import {
   CreditCard,
   Calendar,
   Crown,
-  Zap
+  Zap,
+  Mail,
+  Shield,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
@@ -39,6 +43,12 @@ interface Entreprise {
   subscription_status?: string | null;
   subscription_current_period_end?: string | null;
   stripe_subscription_id?: string | null;
+  smtp_host?: string | null;
+  smtp_port?: number | null;
+  smtp_user?: string | null;
+  smtp_password?: string | null;
+  smtp_secure?: boolean;
+  use_custom_smtp?: boolean;
 }
 
 export default function SettingsPage() {
@@ -54,6 +64,7 @@ export default function SettingsPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     nom: '',
     email: '',
@@ -64,6 +75,12 @@ export default function SettingsPage() {
     couleur_accent: '#dc2626',
     titre_calculatrice: 'Simulateur de volume pour déménagement',
     message_formulaire: '',
+    smtp_host: '',
+    smtp_port: 587,
+    smtp_user: '',
+    smtp_password: '',
+    smtp_secure: true,
+    use_custom_smtp: false,
   });
 
   useEffect(() => {
@@ -97,6 +114,12 @@ export default function SettingsPage() {
             couleur_accent: entData.entreprise.couleur_accent || '#dc2626',
             titre_calculatrice: entData.entreprise.titre_calculatrice || 'Simulateur de volume pour déménagement',
             message_formulaire: entData.entreprise.message_formulaire || '',
+            smtp_host: entData.entreprise.smtp_host || '',
+            smtp_port: entData.entreprise.smtp_port || 587,
+            smtp_user: entData.entreprise.smtp_user || '',
+            smtp_password: entData.entreprise.smtp_password || '',
+            smtp_secure: entData.entreprise.smtp_secure !== undefined ? entData.entreprise.smtp_secure : true,
+            use_custom_smtp: entData.entreprise.use_custom_smtp || false,
           });
         }
       }
@@ -683,6 +706,129 @@ export default function SettingsPage() {
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg resize-none
                          focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+          </div>
+
+          {/* Configuration SMTP */}
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+              <Mail className="w-5 h-5" />
+              Configuration SMTP
+            </h2>
+            
+            <div className="space-y-4">
+              {/* Toggle SMTP personnalisé */}
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <input
+                  type="checkbox"
+                  id="use_custom_smtp"
+                  checked={formData.use_custom_smtp}
+                  onChange={(e) => setFormData(prev => ({ ...prev, use_custom_smtp: e.target.checked }))}
+                  className="rounded"
+                />
+                <label htmlFor="use_custom_smtp" className="text-sm font-medium text-slate-700">
+                  Utiliser un serveur SMTP personnalisé
+                </label>
+              </div>
+              
+              <p className="text-sm text-slate-600">
+                Par défaut, les emails sont envoyés depuis notre serveur. 
+                Activez cette option pour envoyer les emails depuis votre propre serveur SMTP.
+              </p>
+              
+              {formData.use_custom_smtp && (
+                <div className="grid md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border">
+                  <div className="md:col-span-2">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className="w-4 h-4 text-amber-500" />
+                      <span className="text-sm font-medium text-amber-700">
+                        Configuration sécurisée
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Serveur SMTP *
+                    </label>
+                    <input
+                      type="text"
+                      name="smtp_host"
+                      value={formData.smtp_host}
+                      onChange={handleChange}
+                      placeholder="smtp.gmail.com"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg
+                               focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Port *
+                    </label>
+                    <input
+                      type="number"
+                      name="smtp_port"
+                      value={formData.smtp_port}
+                      onChange={handleChange}
+                      placeholder="587"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg
+                               focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Nom d&apos;utilisateur *
+                    </label>
+                    <input
+                      type="text"
+                      name="smtp_user"
+                      value={formData.smtp_user}
+                      onChange={handleChange}
+                      placeholder="votre@email.com"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg
+                               focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Mot de passe *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="smtp_password"
+                        value={formData.smtp_password}
+                        onChange={handleChange}
+                        placeholder="••••••••••"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg pr-10
+                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={formData.smtp_secure}
+                        onChange={(e) => setFormData(prev => ({ ...prev, smtp_secure: e.target.checked }))}
+                        className="rounded"
+                      />
+                      Connexion sécurisée (TLS/SSL)
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

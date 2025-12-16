@@ -150,6 +150,41 @@ INSERT INTO entreprises (
     'pro'
 ) ON CONFLICT (slug) DO NOTHING;
 
+-- Entreprise calculateur par défaut pour la page d'accueil
+INSERT INTO entreprises (
+    user_id,
+    nom,
+    email,
+    telephone,
+    adresse,
+    code_postal,
+    ville,
+    pays,
+    slug,
+    couleur_primaire,
+    couleur_secondaire,
+    couleur_accent,
+    actif,
+    plan,
+    titre_calculatrice
+) VALUES (
+    (SELECT id FROM users WHERE email = 'admin@moovelabs.com'),
+    'MooveLabs Calculateur',
+    'contact@moovelabs.com',
+    '+41 21 123 45 67',
+    'Route de Genève 1',
+    '1000',
+    'Lausanne',
+    'Suisse',
+    'calculateur-demenagement',
+    '#1e3a5f',
+    '#2563eb',
+    '#dc2626',
+    true,
+    'enterprise',
+    'Calculateur de Volume pour Déménagement'
+) ON CONFLICT (slug) DO NOTHING;
+
 -- =====================================================
 -- FIN DES DONNÉES INITIALES
 -- =====================================================
@@ -163,6 +198,9 @@ BEGIN
     RAISE NOTICE 'Users: %', (SELECT COUNT(*) FROM users);
     RAISE NOTICE 'Entreprises: %', (SELECT COUNT(*) FROM entreprises);
 END $$;
+
+
+
 
 
 

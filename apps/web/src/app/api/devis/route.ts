@@ -193,6 +193,12 @@ async function sendEmails(
         nom: entreprise.nom,
         email: entreprise.email_notification || entreprise.email,
         telephone: entreprise.telephone || undefined,
+        smtp_host: entreprise.smtp_host || undefined,
+        smtp_port: entreprise.smtp_port || undefined,
+        smtp_user: entreprise.smtp_user || undefined,
+        smtp_password: entreprise.smtp_password || undefined,
+        smtp_secure: entreprise.smtp_secure !== undefined ? entreprise.smtp_secure : true,
+        use_custom_smtp: entreprise.use_custom_smtp || false,
       },
     };
     

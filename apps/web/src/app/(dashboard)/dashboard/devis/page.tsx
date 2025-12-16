@@ -16,7 +16,13 @@ import {
   Mail,
   Calendar,
   Euro,
-  Users
+  Users,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Download,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
@@ -57,6 +63,11 @@ export default function DevisPage() {
   const [entrepriseId, setEntrepriseId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [entreprise, setEntreprise] = useState<any>(null);
+  const [sortField, setSortField] = useState<keyof Devis | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedDevis, setSelectedDevis] = useState<string[]>([]);
 
   useEffect(() => {
     fetchUser();
@@ -121,7 +132,70 @@ export default function DevisPage() {
     }
   };
 
-  const filteredDevis = devis.filter(d => {
+  const handleSort = (field: keyof Devis) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
+
+  const getSortIcon = (field: keyof Devis) => {
+    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 text-slate-400" />;
+    return sortDirection === 'asc' ? 
+      <ArrowUp className="w-3 h-3 text-primary-600" /> : 
+      <ArrowDown className="w-3 h-3 text-primary-600" />;
+  };
+
+  const handleSelectDevis = (devisId: string) => {
+    setSelectedDevis(prev => 
+      prev.includes(devisId) 
+        ? prev.filter(id => id !== devisId)
+        : [...prev, devisId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedDevis.length === paginatedDevis.length) {
+      setSelectedDevis([]);
+    } else {
+      setSelectedDevis(paginatedDevis.map(d => d.id));
+    }
+  };
+
+  const exportSelectedDevis = () => {
+    const selected = devis.filter(d => selectedDevis.includes(d.id));
+    const csvContent = [
+      'Numéro,Client,Email,Téléphone,Adresse Départ,Adresse Arrivée,Volume (m³),Meubles,Statut,Date création,Montant',
+      ...selected.map(d => [
+        d.numero,
+        d.client_nom,
+        d.client_email,
+        d.client_telephone || '',
+        d.adresse_depart,
+        d.adresse_arrivee,
+        d.volume_total_m3,
+        d.nombre_meubles,
+        statutColors[d.statut]?.label || d.statut,
+        new Date(d.created_at).toLocaleDateString('fr-FR'),
+        d.montant_estime ? `${d.montant_estime} ${d.devise}` : ''
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `devis-export-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  let filteredDevis = devis.filter(d => {
     const matchSearch = 
       d.client_nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       d.client_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,6 +203,37 @@ export default function DevisPage() {
     const matchStatut = !filterStatut || d.statut === filterStatut;
     return matchSearch && matchStatut;
   });
+
+  // Apply sorting
+  if (sortField) {
+    filteredDevis = [...filteredDevis].sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+      
+      // Handle null/undefined values
+      if (aVal === null || aVal === undefined) aVal = '';
+      if (bVal === null || bVal === undefined) bVal = '';
+      
+      // Convert to string for comparison if needed
+      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+      
+      if (sortDirection === 'asc') {
+        return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      } else {
+        return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+      }
+    });
+  }
+
+  // Pagination
+  const totalPages = Math.ceil(filteredDevis.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedDevis = filteredDevis.slice(startIndex, startIndex + itemsPerPage);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('fr-FR', {
@@ -193,10 +298,92 @@ export default function DevisPage() {
               <option key={key} value={key}>{label}</option>
             ))}
           </select>
+          
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 border border-slate-300 rounded-lg text-sm
+                     focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value={5}>5 par page</option>
+            <option value={10}>10 par page</option>
+            <option value={20}>20 par page</option>
+            <option value={50}>50 par page</option>
+          </select>
+        </div>
+
+        {/* Statistiques et actions en masse */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="text-sm text-slate-600">
+            Affichage de {startIndex + 1} à {Math.min(startIndex + itemsPerPage, filteredDevis.length)} sur {filteredDevis.length} devis
+            {selectedDevis.length > 0 && (
+              <span className="ml-4 text-primary-600 font-medium">
+                {selectedDevis.length} sélectionné{selectedDevis.length > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          
+          {selectedDevis.length > 0 && (
+            <button
+              onClick={exportSelectedDevis}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+            >
+              <Download className="w-4 h-4" />
+              Exporter sélectionnés
+            </button>
+          )}
+        </div>
+
+        {/* Table header pour desktop */}
+        <div className="hidden lg:block bg-white rounded-t-xl border border-slate-200 overflow-hidden">
+          <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-slate-50 border-b border-slate-200 text-sm font-medium text-slate-700">
+            <div className="col-span-1 flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={paginatedDevis.length > 0 && selectedDevis.length === paginatedDevis.length}
+                onChange={handleSelectAll}
+                className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
+              />
+            </div>
+            <button 
+              onClick={() => handleSort('numero')} 
+              className="col-span-2 flex items-center gap-1 text-left hover:text-primary-600"
+            >
+              Numéro {getSortIcon('numero')}
+            </button>
+            <button 
+              onClick={() => handleSort('client_nom')} 
+              className="col-span-2 flex items-center gap-1 text-left hover:text-primary-600"
+            >
+              Client {getSortIcon('client_nom')}
+            </button>
+            <button 
+              onClick={() => handleSort('volume_total_m3')} 
+              className="col-span-1 flex items-center gap-1 text-left hover:text-primary-600"
+            >
+              Volume {getSortIcon('volume_total_m3')}
+            </button>
+            <button 
+              onClick={() => handleSort('statut')} 
+              className="col-span-2 flex items-center gap-1 text-left hover:text-primary-600"
+            >
+              Statut {getSortIcon('statut')}
+            </button>
+            <button 
+              onClick={() => handleSort('created_at')} 
+              className="col-span-2 flex items-center gap-1 text-left hover:text-primary-600"
+            >
+              Date {getSortIcon('created_at')}
+            </button>
+            <div className="col-span-2 text-center">Actions</div>
+          </div>
         </div>
 
         {/* Liste des devis */}
-        {filteredDevis.length === 0 ? (
+        {paginatedDevis.length === 0 ? (
           <div className="bg-white rounded-xl p-12 text-center border border-slate-200">
             <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-600 mb-2">Aucun devis</h3>
@@ -205,8 +392,66 @@ export default function DevisPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredDevis.map((d) => {
+          <div className="space-y-0">
+            {/* Desktop table view */}
+            <div className="hidden lg:block bg-white border-x border-slate-200">
+              {paginatedDevis.map((d) => {
+                const statut = statutColors[d.statut] || statutColors.nouveau;
+                
+                return (
+                  <div key={d.id} className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-slate-100 hover:bg-slate-50 items-center">
+                    <div className="col-span-1 flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedDevis.includes(d.id)}
+                        onChange={() => handleSelectDevis(d.id)}
+                        className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-sm font-mono text-slate-600">{d.numero}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="font-medium text-slate-800 truncate">{d.client_nom}</p>
+                      <p className="text-xs text-slate-500 truncate">{d.client_email}</p>
+                    </div>
+                    <div className="col-span-1 text-center">
+                      <p className="text-sm font-semibold text-primary-600">{parseFloat(String(d.volume_total_m3 || 0)).toFixed(1)}</p>
+                      <p className="text-xs text-slate-500">m³</p>
+                    </div>
+                    <div className="col-span-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statut.bg} ${statut.text}`}>
+                        {statut.label}
+                      </span>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-slate-600">{formatDate(d.created_at)}</p>
+                    </div>
+                    <div className="col-span-2 flex gap-1">
+                      <Link
+                        href={`/dashboard/devis/${d.id}`}
+                        className="flex items-center gap-1 px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700"
+                      >
+                        <Eye className="w-3 h-3" />
+                        Voir
+                      </Link>
+                      {d.statut === 'nouveau' && (
+                        <button
+                          onClick={() => updateStatut(d.id, 'vu')}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                        >
+                          Vu
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Mobile card view */}
+            <div className="lg:hidden space-y-4">
+              {paginatedDevis.map((d) => {
               const statut = statutColors[d.statut] || statutColors.nouveau;
               
               return (
@@ -345,7 +590,69 @@ export default function DevisPage() {
                   </div>
                 </div>
               );
-            })}
+              })}
+            </div>
+          </div>
+        )}
+        
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="bg-white rounded-b-xl border-x border-b border-slate-200 lg:border-t-0 border-t px-6 py-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="text-sm text-slate-600">
+                Page {currentPage} sur {totalPages}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Précédent
+                </button>
+                
+                {/* Page numbers */}
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let page;
+                    if (totalPages <= 5) {
+                      page = i + 1;
+                    } else if (currentPage <= 3) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i;
+                    } else {
+                      page = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`w-8 h-8 text-sm rounded-lg ${
+                          currentPage === page
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Suivant
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

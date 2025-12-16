@@ -25,3 +25,5 @@ echo "Conteúdo de /app/.next (se existir):"
 ls -la /app/.next/ 2>/dev/null || echo "Diretório .next não existe"
 exit 1
 
+
+

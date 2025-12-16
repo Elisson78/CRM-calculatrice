@@ -1,14 +1,5 @@
 import nodemailer from 'nodemailer';
 
-// Configuração do transporter Gmail
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
 interface DevisEmailData {
   clientNom: string;
   clientEmail: string;
@@ -29,6 +20,12 @@ interface DevisEmailData {
     email: string;
     telephone?: string;
     logoUrl?: string;
+    smtp_host?: string;
+    smtp_port?: number;
+    smtp_user?: string;
+    smtp_password?: string;
+    smtp_secure?: boolean;
+    use_custom_smtp?: boolean;
   };
 }
 
@@ -220,6 +217,31 @@ function getEntrepriseEmailTemplate(data: DevisEmailData): string {
   `;
 }
 
+// Fonction pour créer le transporter email
+function createTransporter(data: DevisEmailData) {
+  // Si l'entreprise utilise un SMTP personnalisé
+  if (data.entreprise.use_custom_smtp && data.entreprise.smtp_host && data.entreprise.smtp_user) {
+    return nodemailer.createTransport({
+      host: data.entreprise.smtp_host,
+      port: data.entreprise.smtp_port || 587,
+      secure: data.entreprise.smtp_secure !== false, // true pour 465, false pour autres ports
+      auth: {
+        user: data.entreprise.smtp_user,
+        pass: data.entreprise.smtp_password,
+      },
+    });
+  }
+  
+  // Configuration par défaut (Gmail de Moovelabs)
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+}
+
 // Fonction d'envoi d'email
 export async function sendDevisEmails(data: DevisEmailData): Promise<{
   clientSent: boolean;
@@ -232,39 +254,50 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
     error: undefined as string | undefined,
   };
 
-  // Vérifier la configuration
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error('❌ Configuration email manquante (EMAIL_USER ou EMAIL_PASS)');
-    result.error = 'Configuration email manquante';
-    return result;
-  }
-
   try {
-    // Email au client
-    await transporter.sendMail({
-      from: `"${data.entreprise.nom}" <${process.env.EMAIL_USER}>`,
-      to: data.clientEmail,
-      subject: `✅ Votre demande de devis - ${data.entreprise.nom}`,
-      html: getClientEmailTemplate(data),
-    });
-    result.clientSent = true;
-    console.log(`📧 Email envoyé au client: ${data.clientEmail}`);
-  } catch (error) {
-    console.error('❌ Erreur envoi email client:', error);
-  }
+    const transporter = createTransporter(data);
+    
+    // Déterminer l'adresse d'envoi
+    const fromEmail = data.entreprise.use_custom_smtp && data.entreprise.smtp_user 
+      ? data.entreprise.smtp_user 
+      : process.env.EMAIL_USER;
+      
+    if (!fromEmail) {
+      result.error = 'Configuration email manquante';
+      return result;
+    }
 
-  try {
-    // Email à l'entreprise
-    await transporter.sendMail({
-      from: `"Moovelabs CRM" <${process.env.EMAIL_USER}>`,
-      to: data.entreprise.email,
-      subject: `🔔 Nouvelle demande de devis - ${data.clientNom} (${data.volumeTotal.toFixed(1)} m³)`,
-      html: getEntrepriseEmailTemplate(data),
-    });
-    result.entrepriseSent = true;
-    console.log(`📧 Email envoyé à l'entreprise: ${data.entreprise.email}`);
+    try {
+      // Email au client
+      await transporter.sendMail({
+        from: `"${data.entreprise.nom}" <${fromEmail}>`,
+        to: data.clientEmail,
+        subject: `✅ Votre demande de devis - ${data.entreprise.nom}`,
+        html: getClientEmailTemplate(data),
+      });
+      result.clientSent = true;
+      console.log(`📧 Email envoyé au client: ${data.clientEmail} via ${fromEmail}`);
+    } catch (error) {
+      console.error('❌ Erreur envoi email client:', error);
+    }
+
+    try {
+      // Email à l'entreprise
+      await transporter.sendMail({
+        from: `"Moovelabs CRM" <${fromEmail}>`,
+        to: data.entreprise.email,
+        subject: `🔔 Nouvelle demande de devis - ${data.clientNom} (${data.volumeTotal.toFixed(1)} m³)`,
+        html: getEntrepriseEmailTemplate(data),
+      });
+      result.entrepriseSent = true;
+      console.log(`📧 Email envoyé à l'entreprise: ${data.entreprise.email} via ${fromEmail}`);
+    } catch (error) {
+      console.error('❌ Erreur envoi email entreprise:', error);
+    }
+
   } catch (error) {
-    console.error('❌ Erreur envoi email entreprise:', error);
+    console.error('❌ Erreur configuration transporter:', error);
+    result.error = 'Erreur de configuration email';
   }
 
   return result;

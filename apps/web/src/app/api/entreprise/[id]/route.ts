@@ -51,6 +51,12 @@ export async function PATCH(
       couleur_accent,
       titre_calculatrice,
       message_formulaire,
+      smtp_host,
+      smtp_port,
+      smtp_user,
+      smtp_password,
+      smtp_secure,
+      use_custom_smtp,
     } = body;
     
     await query(
@@ -64,12 +70,20 @@ export async function PATCH(
         couleur_accent = COALESCE($7, couleur_accent),
         titre_calculatrice = COALESCE($8, titre_calculatrice),
         message_formulaire = COALESCE($9, message_formulaire),
+        smtp_host = COALESCE($10, smtp_host),
+        smtp_port = COALESCE($11, smtp_port),
+        smtp_user = COALESCE($12, smtp_user),
+        smtp_password = COALESCE($13, smtp_password),
+        smtp_secure = COALESCE($14, smtp_secure),
+        use_custom_smtp = COALESCE($15, use_custom_smtp),
         updated_at = NOW()
-      WHERE id = $10`,
+      WHERE id = $16`,
       [
         nom, email, telephone, adresse,
         couleur_primaire, couleur_secondaire, couleur_accent,
-        titre_calculatrice, message_formulaire, id
+        titre_calculatrice, message_formulaire,
+        smtp_host, smtp_port, smtp_user, smtp_password, smtp_secure, use_custom_smtp,
+        id
       ]
     );
     
@@ -83,6 +97,8 @@ export async function PATCH(
     );
   }
 }
+
+
 
 
 
