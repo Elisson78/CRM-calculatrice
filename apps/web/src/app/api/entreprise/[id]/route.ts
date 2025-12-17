@@ -99,11 +99,10 @@ export async function PATCH(
       ]
     );
     
-    console.log('✅ Update réussi, lignes affectées:', result.rowCount);
+    console.log('✅ Update réussi');
     return NextResponse.json({ 
       success: true, 
-      message: 'Entreprise mise à jour avec succès',
-      rowsAffected: result.rowCount 
+      message: 'Entreprise mise à jour avec succès'
     });
     
   } catch (error) {
