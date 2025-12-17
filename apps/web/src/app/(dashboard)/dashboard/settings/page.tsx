@@ -49,6 +49,7 @@ interface Entreprise {
   smtp_password?: string | null;
   smtp_secure?: boolean;
   use_custom_smtp?: boolean;
+  logo_size?: number;
 }
 
 export default function SettingsPage() {
@@ -65,6 +66,8 @@ export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [logoSize, setLogoSize] = useState(100); // Tamanho em pixels
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nom: '',
     email: '',
@@ -121,6 +124,7 @@ export default function SettingsPage() {
             smtp_secure: entData.entreprise.smtp_secure !== undefined ? entData.entreprise.smtp_secure : true,
             use_custom_smtp: entData.entreprise.use_custom_smtp || false,
           });
+          setLogoSize(entData.entreprise.logo_size || 100);
         }
       }
     } catch (error) {
@@ -192,19 +196,32 @@ export default function SettingsPage() {
     if (!entreprise) return;
 
     setSaving(true);
+    setSubmitError(null);
+    
     try {
+      console.log('Envoi des données:', formData);
+      
       const response = await fetch(`/api/entreprise/${entreprise.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, logo_size: logoSize }),
       });
 
+      console.log('Réponse status:', response.status);
+      
       if (response.ok) {
+        const result = await response.json();
+        console.log('Succès:', result);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
+      } else {
+        const errorData = await response.json();
+        console.error('Erreur réponse:', errorData);
+        setSubmitError(errorData.error || 'Erreur lors de la sauvegarde');
       }
     } catch (error) {
       console.error('Erreur:', error);
+      setSubmitError('Erreur de connexion. Veuillez réessayer.');
     } finally {
       setSaving(false);
     }
@@ -213,6 +230,20 @@ export default function SettingsPage() {
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !entreprise) return;
+
+    console.log('Upload de fichier:', file.name, file.size, file.type);
+
+    // Vérifications côté client
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Le fichier est trop volumineux. Maximum 5MB.');
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Type de fichier non autorisé. Utilisez JPG, PNG, GIF, WebP ou SVG.');
+      return;
+    }
 
     // Preview
     const reader = new FileReader();
@@ -228,23 +259,35 @@ export default function SettingsPage() {
       formData.append('logo', file);
       formData.append('entrepriseId', entreprise.id);
 
+      console.log('Envoi vers API upload...');
+      
       const response = await fetch('/api/upload/logo', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Réponse upload status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Upload succès:', data);
         setLogoPreview(data.logoUrl);
         setEntreprise({ ...entreprise, logo_url: data.logoUrl });
+        alert('Logo uploadé avec succès!');
       } else {
-        const error = await response.json();
-        alert(error.error || 'Erreur lors de l\'upload');
+        const errorText = await response.text();
+        console.error('Erreur upload response:', errorText);
+        try {
+          const error = JSON.parse(errorText);
+          alert(error.error || 'Erreur lors de l\'upload');
+        } catch {
+          alert('Erreur lors de l\'upload: ' + errorText);
+        }
         setLogoPreview(entreprise.logo_url);
       }
     } catch (error) {
       console.error('Erreur upload:', error);
-      alert('Erreur lors de l\'upload');
+      alert('Erreur lors de l\'upload: ' + error.message);
       setLogoPreview(entreprise.logo_url);
     } finally {
       setUploading(false);
@@ -441,8 +484,16 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
               {/* Preview */}
               <div className="relative mx-auto sm:mx-0">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-dashed border-slate-300 rounded-xl 
-                              flex items-center justify-center bg-slate-50 overflow-hidden">
+                <div 
+                  className="border-2 border-dashed border-slate-300 rounded-xl 
+                           flex items-center justify-center bg-slate-50 overflow-hidden"
+                  style={{ 
+                    width: `${logoSize}px`, 
+                    height: `${logoSize}px`,
+                    minWidth: '64px',
+                    minHeight: '64px'
+                  }}
+                >
                   {logoPreview ? (
                     <img 
                       src={logoPreview} 
@@ -451,7 +502,7 @@ export default function SettingsPage() {
                     />
                   ) : (
                     <div className="text-center text-slate-400">
-                      <ImageIcon className="w-10 h-10 mx-auto mb-1" />
+                      <ImageIcon className="w-8 h-8 mx-auto mb-1" />
                       <span className="text-xs">Aucun logo</span>
                     </div>
                   )}
@@ -460,6 +511,25 @@ export default function SettingsPage() {
                       <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                     </div>
                   )}
+                </div>
+                
+                {/* Contrôle de taille */}
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                    Taille: {logoSize}px
+                  </label>
+                  <input
+                    type="range"
+                    min="64"
+                    max="200"
+                    value={logoSize}
+                    onChange={(e) => setLogoSize(Number(e.target.value))}
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-xs text-slate-400 mt-1">
+                    <span>64px</span>
+                    <span>200px</span>
+                  </div>
                 </div>
               </div>
               
@@ -652,7 +722,12 @@ export default function SettingsPage() {
               <p className="text-sm text-slate-500 mb-3">Prévisualisation:</p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                 {logoPreview && (
-                  <img src={logoPreview} alt="Logo" className="w-12 h-12 object-contain" />
+                  <img 
+                    src={logoPreview} 
+                    alt="Logo" 
+                    className="object-contain"
+                    style={{ width: `${Math.min(logoSize * 0.5, 48)}px`, height: `${Math.min(logoSize * 0.5, 48)}px` }}
+                  />
                 )}
                 <div className="flex gap-2 flex-wrap w-full">
                   <div 
@@ -859,6 +934,13 @@ export default function SettingsPage() {
               </Link>
             </div>
           </div>
+
+          {/* Messages d'erreur */}
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-600 text-sm">{submitError}</p>
+            </div>
+          )}
 
           {/* Bouton sauvegarder */}
           <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">

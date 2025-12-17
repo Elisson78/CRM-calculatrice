@@ -18,7 +18,13 @@ export function CalculatriceHeader() {
               <img
                 src={entreprise.logo_url}
                 alt={entreprise.nom}
-                className="w-10 h-10 sm:w-12 sm:h-12 object-contain flex-shrink-0"
+                className="object-contain flex-shrink-0"
+                style={{ 
+                  width: `${Math.min((entreprise.logo_size || 100) * 0.4, 48)}px`,
+                  height: `${Math.min((entreprise.logo_size || 100) * 0.4, 48)}px`,
+                  minWidth: '32px',
+                  minHeight: '32px'
+                }}
               />
             ) : (
               <div 

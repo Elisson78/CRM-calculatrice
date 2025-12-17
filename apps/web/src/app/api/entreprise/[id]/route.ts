@@ -57,6 +57,7 @@ export async function PATCH(
       smtp_password,
       smtp_secure,
       use_custom_smtp,
+      logo_size,
     } = body;
     
     await query(
@@ -76,13 +77,15 @@ export async function PATCH(
         smtp_password = COALESCE($13, smtp_password),
         smtp_secure = COALESCE($14, smtp_secure),
         use_custom_smtp = COALESCE($15, use_custom_smtp),
+        logo_size = COALESCE($16, logo_size),
         updated_at = NOW()
-      WHERE id = $16`,
+      WHERE id = $17`,
       [
         nom, email, telephone, adresse,
         couleur_primaire, couleur_secondaire, couleur_accent,
         titre_calculatrice, message_formulaire,
         smtp_host, smtp_port, smtp_user, smtp_password, smtp_secure, use_custom_smtp,
+        logo_size,
         id
       ]
     );
@@ -97,6 +100,7 @@ export async function PATCH(
     );
   }
 }
+
 
 
 
