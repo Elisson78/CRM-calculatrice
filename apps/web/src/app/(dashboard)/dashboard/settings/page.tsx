@@ -342,12 +342,12 @@ export default function SettingsPage() {
       }}
       onLogout={handleLogout}
     >
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-slate-800 mb-6">Paramètres</h1>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 sm:mb-6">Paramètres</h1>
 
         <div className="space-y-6">
           {/* Subscription/Plan */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
               Plan et facturation
@@ -355,7 +355,7 @@ export default function SettingsPage() {
             
             <div className="space-y-4">
               {/* Plan atual */}
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   {getPlanIcon(entreprise.plan)}
                   <div>
@@ -383,7 +383,7 @@ export default function SettingsPage() {
               )}
 
               {/* Botões de ação */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200">
+              <div className="flex flex-col gap-3 pt-4 border-t border-slate-200">
                 {entreprise.stripe_subscription_id ? (
                   <button
                     onClick={handleOpenPortal}
@@ -432,16 +432,16 @@ export default function SettingsPage() {
         <form onSubmit={handleSubmit} className="space-y-8 mt-8">
           
           {/* Logo Upload */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <ImageIcon className="w-5 h-5" />
               Logo de l&apos;entreprise
             </h2>
             
-            <div className="flex items-start gap-6">
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
               {/* Preview */}
-              <div className="relative">
-                <div className="w-32 h-32 border-2 border-dashed border-slate-300 rounded-xl 
+              <div className="relative mx-auto sm:mx-0">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-dashed border-slate-300 rounded-xl 
                               flex items-center justify-center bg-slate-50 overflow-hidden">
                   {logoPreview ? (
                     <img 
@@ -464,14 +464,14 @@ export default function SettingsPage() {
               </div>
               
               {/* Upload controls */}
-              <div className="flex-1">
+              <div className="flex-1 w-full">
                 <p className="text-sm text-slate-600 mb-4">
                   Uploadez le logo de votre entreprise. Il apparaîtra sur votre calculatrice.
                   <br />
                   <span className="text-slate-400">Formats: JPG, PNG, GIF, WebP, SVG. Max 5MB.</span>
                 </p>
                 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -508,13 +508,13 @@ export default function SettingsPage() {
           </div>
 
           {/* Informations entreprise */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <Settings className="w-5 h-5" />
               Informations de l&apos;entreprise
             </h2>
             
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Nom de l&apos;entreprise
@@ -575,19 +575,19 @@ export default function SettingsPage() {
           </div>
 
           {/* Personnalisation calculatrice */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <Palette className="w-5 h-5" />
               Personnalisation de la calculatrice
             </h2>
             
             {/* Couleurs */}
-            <div className="grid md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Couleur primaire
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <input
                     type="color"
                     value={formData.couleur_primaire}
@@ -608,7 +608,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Couleur secondaire
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <input
                     type="color"
                     value={formData.couleur_secondaire}
@@ -629,7 +629,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Couleur accent
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <input
                     type="color"
                     value={formData.couleur_accent}
@@ -648,13 +648,13 @@ export default function SettingsPage() {
             </div>
 
             {/* Prévisualisation */}
-            <div className="mb-6 p-4 rounded-lg border border-slate-200 bg-slate-50">
+            <div className="mb-6 p-3 sm:p-4 rounded-lg border border-slate-200 bg-slate-50">
               <p className="text-sm text-slate-500 mb-3">Prévisualisation:</p>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                 {logoPreview && (
                   <img src={logoPreview} alt="Logo" className="w-12 h-12 object-contain" />
                 )}
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 flex-wrap w-full">
                   <div 
                     className="px-4 py-2 rounded text-white font-medium text-sm"
                     style={{ backgroundColor: formData.couleur_primaire }}
@@ -710,7 +710,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Configuration SMTP */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <Mail className="w-5 h-5" />
               Configuration SMTP
@@ -737,8 +737,8 @@ export default function SettingsPage() {
               </p>
               
               {formData.use_custom_smtp && (
-                <div className="grid md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border">
-                  <div className="md:col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 sm:p-4 bg-slate-50 rounded-lg border">
+                  <div className="sm:col-span-2">
                     <div className="flex items-center gap-2 mb-3">
                       <Shield className="w-4 h-4 text-amber-500" />
                       <span className="text-sm font-medium text-amber-700">
@@ -816,7 +816,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   
-                  <div className="md:col-span-2">
+                  <div className="sm:col-span-2">
                     <label className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
@@ -833,18 +833,18 @@ export default function SettingsPage() {
           </div>
 
           {/* Lien calculatrice */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4">
               Lien de votre calculatrice
             </h2>
-            <div className="flex items-center gap-4 flex-wrap">
-              <code className="flex-1 min-w-0 bg-slate-100 px-4 py-3 rounded-lg text-sm truncate">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+              <code className="flex-1 min-w-0 bg-slate-100 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm break-all sm:truncate">
                 {calculatriceUrl}
               </code>
               <button
                 type="button"
                 onClick={copyLink}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 text-sm"
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 {copied ? 'Copié!' : 'Copier'}
@@ -852,7 +852,7 @@ export default function SettingsPage() {
               <Link
                 href={`/calculatrice/${entreprise.slug}`}
                 target="_blank"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
               >
                 <ExternalLink className="w-4 h-4" />
                 Voir
@@ -861,12 +861,12 @@ export default function SettingsPage() {
           </div>
 
           {/* Bouton sauvegarder */}
-          <div className="flex justify-end gap-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg
-                       hover:bg-blue-700 disabled:opacity-50 font-medium"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg
+                       hover:bg-blue-700 disabled:opacity-50 font-medium w-full sm:w-auto"
             >
               {saving ? (
                 <>
