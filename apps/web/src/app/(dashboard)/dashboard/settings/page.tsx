@@ -153,7 +153,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('💥 Erreur dans fetchEntreprise:', error);
-      setSubmitError('Erreur de chargement des données: ' + error.message);
+      setSubmitError('Erreur de chargement des données: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
     } finally {
       setLoading(false);
       console.log('🏁 Fin fetchEntreprise');
@@ -264,7 +264,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('💥 Erreur handleSubmit:', error);
-      setSubmitError('Erreur de connexion: ' + error.message);
+      setSubmitError('Erreur de connexion: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
     } finally {
       setSaving(false);
       console.log('🏁 Fin handleSubmit');
@@ -331,7 +331,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Erreur upload:', error);
-      alert('Erreur lors de l\'upload: ' + error.message);
+      alert('Erreur lors de l\'upload: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
       setLogoPreview(entreprise.logo_url);
     } finally {
       setUploading(false);
