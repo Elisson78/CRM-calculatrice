@@ -21,7 +21,7 @@ export function VolumeDisplay() {
           className="inline-block"
         >
           <h2 
-            className="text-xl sm:text-2xl md:text-3xl font-bold break-words"
+            className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold break-words px-2"
             style={{ color: primaryColor }}
           >
             VOLUME: {formatVolume(volumeTotal)} M³
@@ -61,7 +61,7 @@ export function VolumeSummaryBar() {
       <div className="container mx-auto px-4 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="text-white">
-            <p className="text-base sm:text-lg md:text-xl font-bold break-words">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl font-bold break-words">
               VOLUME: {formatVolume(volumeTotal)} M³
             </p>
             <p className="text-xs sm:text-sm opacity-80">

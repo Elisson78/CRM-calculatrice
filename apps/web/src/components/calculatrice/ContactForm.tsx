@@ -13,7 +13,9 @@ import { formatVolume } from '@/lib/utils';
 const formSchema = z.object({
   nom: z.string().min(2, 'Le nom est requis'),
   email: z.string().email('Email invalide'),
-  telephone: z.string().min(10, 'Téléphone invalide'),
+  telephone: z.string()
+    .min(8, 'Téléphone invalide')
+    .regex(/^[\+]?[0-9\s\-\(\)]{8,20}$/, 'Format de téléphone invalide'),
   adresse_depart: z.string().min(5, 'Adresse de départ requise'),
   avec_ascenseur_depart: z.boolean(),
   adresse_arrivee: z.string().min(5, "Adresse d'arrivée requise"),
@@ -225,6 +227,7 @@ export function ContactForm() {
                         {...register('telephone')}
                         placeholder="+41 XX XXX XX XX"
                         className="input"
+                        inputMode="tel"
                       />
                       {errors.telephone && (
                         <p className="text-red-500 text-sm mt-1">{errors.telephone.message}</p>
@@ -358,6 +361,7 @@ export function ContactForm() {
     </AnimatePresence>
   );
 }
+
 
 
 
