@@ -38,3 +38,4 @@ echo "  3. Verifique se .env.local não será commitado"
 
 
 
+

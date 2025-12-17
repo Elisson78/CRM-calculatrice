@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     let entreprise = null;
     if (user.role === 'entreprise') {
       entreprise = await queryOne(
-        'SELECT id, nom, slug, logo_url, couleur_primaire, couleur_secondaire FROM entreprises WHERE user_id = $1',
+        'SELECT id, nom, slug, logo_url, logo_size, couleur_primaire, couleur_secondaire FROM entreprises WHERE user_id = $1',
         [user.id]
       );
     }
@@ -60,6 +60,7 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 
 
 

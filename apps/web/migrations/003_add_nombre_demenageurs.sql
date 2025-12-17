@@ -9,3 +9,4 @@ COMMENT ON COLUMN devis.nombre_demenageurs IS 'Nombre de déménageurs nécessai
 
 
 
+

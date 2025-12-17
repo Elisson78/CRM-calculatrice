@@ -51,6 +51,9 @@ export interface Entreprise {
   smtp_secure: boolean;
   use_custom_smtp: boolean;
   
+  // Logo
+  logo_size: number | null;
+  
   // Statut
   actif: boolean;
   plan: 'basic' | 'pro' | 'enterprise';

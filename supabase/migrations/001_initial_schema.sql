@@ -393,3 +393,4 @@ COMMENT ON TABLE logs_activite IS 'Journal des activités pour audit';
 
 
 
+
