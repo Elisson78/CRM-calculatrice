@@ -39,7 +39,10 @@ export async function PATCH(
 ) {
   try {
     const { id } = params;
+    console.log('🔧 API PATCH entreprise - ID:', id);
+    
     const body = await request.json();
+    console.log('📦 Body reçu:', body);
     
     const {
       nom,
@@ -60,7 +63,13 @@ export async function PATCH(
       logo_size,
     } = body;
     
-    await query(
+    console.log('📝 Champs extraits:', {
+      nom, email, telephone, adresse,
+      couleur_primaire, couleur_secondaire, couleur_accent,
+      titre_calculatrice, logo_size, use_custom_smtp
+    });
+    
+    const result = await query(
       `UPDATE entreprises SET
         nom = COALESCE($1, nom),
         email = COALESCE($2, email),
@@ -90,7 +99,12 @@ export async function PATCH(
       ]
     );
     
-    return NextResponse.json({ success: true });
+    console.log('✅ Update réussi, lignes affectées:', result.rowCount);
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Entreprise mise à jour avec succès',
+      rowsAffected: result.rowCount 
+    });
     
   } catch (error) {
     console.error('Erreur PATCH entreprise:', error);

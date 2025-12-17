@@ -93,21 +93,37 @@ export default function SettingsPage() {
 
   const fetchEntreprise = async () => {
     try {
+      console.log('🔍 Début fetchEntreprise - Récupération des données utilisateur...');
+      
       const response = await fetch('/api/auth/me');
+      console.log('📡 Réponse /api/auth/me:', response.status, response.statusText);
+      
       if (!response.ok) {
+        console.error('❌ Échec authentification, redirection vers login');
+        const errorText = await response.text();
+        console.error('📄 Erreur détaillée:', errorText);
         router.push('/login');
         return;
       }
+      
       const data = await response.json();
+      console.log('✅ Données utilisateur récupérées:', data);
       setUser(data.user);
       
       if (data.entreprise) {
+        console.log('🏢 Récupération des données entreprise...', data.entreprise.id);
+        
         const entResponse = await fetch(`/api/entreprise/${data.entreprise.id}`);
+        console.log('📡 Réponse /api/entreprise:', entResponse.status, entResponse.statusText);
+        
         if (entResponse.ok) {
           const entData = await entResponse.json();
+          console.log('✅ Données entreprise récupérées:', entData.entreprise);
+          
           setEntreprise(entData.entreprise);
           setLogoPreview(entData.entreprise.logo_url);
-          setFormData({
+          
+          const newFormData = {
             nom: entData.entreprise.nom || '',
             email: entData.entreprise.email || '',
             telephone: entData.entreprise.telephone || '',
@@ -123,14 +139,24 @@ export default function SettingsPage() {
             smtp_password: entData.entreprise.smtp_password || '',
             smtp_secure: entData.entreprise.smtp_secure !== undefined ? entData.entreprise.smtp_secure : true,
             use_custom_smtp: entData.entreprise.use_custom_smtp || false,
-          });
+          };
+          
+          console.log('📝 FormData initialisé:', newFormData);
+          setFormData(newFormData);
           setLogoSize(entData.entreprise.logo_size || 100);
+        } else {
+          const errorText = await entResponse.text();
+          console.error('❌ Erreur récupération entreprise:', errorText);
         }
+      } else {
+        console.warn('⚠️ Aucune entreprise trouvée pour cet utilisateur');
       }
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('💥 Erreur dans fetchEntreprise:', error);
+      setSubmitError('Erreur de chargement des données: ' + error.message);
     } finally {
       setLoading(false);
+      console.log('🏁 Fin fetchEntreprise');
     }
   };
 
@@ -193,37 +219,55 @@ export default function SettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!entreprise) return;
+    console.log('🚀 Début handleSubmit');
+    
+    if (!entreprise) {
+      console.error('❌ Pas d\'entreprise définie');
+      setSubmitError('Aucune entreprise trouvée');
+      return;
+    }
+
+    console.log('💼 Entreprise actuelle:', entreprise.id, entreprise.nom);
 
     setSaving(true);
     setSubmitError(null);
     
     try {
-      console.log('Envoi des données:', formData);
+      const payload = { ...formData, logo_size: logoSize };
+      console.log('📦 Payload à envoyer:', payload);
       
       const response = await fetch(`/api/entreprise/${entreprise.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, logo_size: logoSize }),
+        body: JSON.stringify(payload),
       });
 
-      console.log('Réponse status:', response.status);
+      console.log('📡 Réponse API:', response.status, response.statusText);
       
       if (response.ok) {
         const result = await response.json();
-        console.log('Succès:', result);
+        console.log('✅ Sauvegarde réussie:', result);
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
+        
+        // Recharger les données pour confirmer la sauvegarde
+        await fetchEntreprise();
       } else {
-        const errorData = await response.json();
-        console.error('Erreur réponse:', errorData);
-        setSubmitError(errorData.error || 'Erreur lors de la sauvegarde');
+        const errorText = await response.text();
+        console.error('❌ Erreur HTTP:', response.status, errorText);
+        try {
+          const errorData = JSON.parse(errorText);
+          setSubmitError(errorData.error || 'Erreur lors de la sauvegarde');
+        } catch {
+          setSubmitError(`Erreur ${response.status}: ${errorText}`);
+        }
       }
     } catch (error) {
-      console.error('Erreur:', error);
-      setSubmitError('Erreur de connexion. Veuillez réessayer.');
+      console.error('💥 Erreur handleSubmit:', error);
+      setSubmitError('Erreur de connexion: ' + error.message);
     } finally {
       setSaving(false);
+      console.log('🏁 Fin handleSubmit');
     }
   };
 
