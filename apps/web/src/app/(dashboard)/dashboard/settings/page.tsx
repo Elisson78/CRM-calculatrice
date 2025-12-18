@@ -121,7 +121,8 @@ export default function SettingsPage() {
           console.log('✅ Données entreprise récupérées:', entData.entreprise);
           
           setEntreprise(entData.entreprise);
-          setLogoPreview(entData.entreprise.logo_url);
+          // Só atualizar o preview se pas déjà défini (éviter d'écraser après upload)
+          setLogoPreview(prev => prev || entData.entreprise.logo_url);
           
           const newFormData = {
             nom: entData.entreprise.nom || '',
@@ -318,23 +319,26 @@ export default function SettingsPage() {
         const data = await response.json();
         console.log('Upload succès:', data);
         setLogoPreview(data.logoUrl);
-        setEntreprise({ ...entreprise, logo_url: data.logoUrl });
-        alert('Logo uploadé avec succès!');
+        setEntreprise(prev => prev ? { ...prev, logo_url: data.logoUrl } : null);
+        
+        // Utiliser le système de notification existant
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
       } else {
         const errorText = await response.text();
         console.error('Erreur upload response:', errorText);
         try {
           const error = JSON.parse(errorText);
-          alert(error.error || 'Erreur lors de l\'upload');
+          setSubmitError(error.error || 'Erreur lors de l\'upload');
         } catch {
-          alert('Erreur lors de l\'upload: ' + errorText);
+          setSubmitError('Erreur lors de l\'upload: ' + errorText);
         }
         setLogoPreview(entreprise.logo_url);
       }
     } catch (error) {
       console.error('Erreur upload:', error);
-      alert('Erreur lors de l\'upload: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
-      setLogoPreview(entreprise.logo_url);
+      setSubmitError('Erreur lors de l\'upload: ' + (error instanceof Error ? error.message : 'Erreur inconnue'));
+      setLogoPreview(entreprise?.logo_url || null);
     } finally {
       setUploading(false);
     }
