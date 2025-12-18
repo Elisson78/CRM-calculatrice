@@ -20,18 +20,27 @@ interface DevisPayload {
 }
 
 export async function POST(request: NextRequest) {
+  console.log('🔥 API /api/devis - Nouvelle requête reçue');
   const client = await pool.connect();
   
   try {
     const payload: DevisPayload = await request.json();
+    console.log('📦 Payload reçu:', { 
+      ...payload, 
+      meubles: payload.meubles?.length || 0,
+      email: payload.email || 'MANQUANT'
+    });
     
     // Validation basique
     if (!payload.email || !payload.nom || !payload.adresse_depart || !payload.adresse_arrivee) {
+      console.log('❌ Validation échouée - Données manquantes');
       return NextResponse.json(
         { error: 'Données manquantes' },
         { status: 400 }
       );
     }
+    
+    console.log('✅ Validation basique réussie');
     
     // Trouver l'entreprise
     let entreprise: Entreprise | null = null;
@@ -156,9 +165,15 @@ export async function POST(request: NextRequest) {
     }
     
   } catch (error) {
-    console.error('Erreur API devis:', error);
+    console.error('❌ Erreur API devis:', error);
+    console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('❌ Payload reçu:', JSON.stringify(payload, null, 2));
+    
     return NextResponse.json(
-      { error: 'Erreur lors de l\'enregistrement du devis' },
+      { 
+        error: 'Erreur lors de l\'enregistrement du devis',
+        details: error instanceof Error ? error.message : 'Erreur inconnue'
+      },
       { status: 500 }
     );
   } finally {
