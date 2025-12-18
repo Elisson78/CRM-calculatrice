@@ -99,10 +99,32 @@ export async function PATCH(
       ]
     );
     
+    // Sincronizar email do usuário se o email da empresa foi alterado
+    if (email) {
+      console.log('📧 Sincronizando email do usuário vinculado...');
+      
+      const syncResult = await query(
+        `UPDATE users 
+         SET email = $1, updated_at = NOW() 
+         WHERE id = (
+           SELECT user_id 
+           FROM entreprises 
+           WHERE id = $2 AND user_id IS NOT NULL
+         )`,
+        [email, id]
+      );
+      
+      if (syncResult.rowCount > 0) {
+        console.log('✅ Email do usuário sincronizado automaticamente');
+      } else {
+        console.log('⚠️ Nenhum usuário vinculado encontrado para sincronização');
+      }
+    }
+    
     console.log('✅ Update réussi');
     return NextResponse.json({ 
       success: true, 
-      message: 'Entreprise mise à jour avec succès'
+      message: 'Entreprise mise à jour avec succès (email sincronizado automaticamente)'
     });
     
   } catch (error) {
