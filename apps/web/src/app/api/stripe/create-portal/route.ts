@@ -5,6 +5,8 @@ import { verifyToken } from '@/lib/auth';
 import { AUTH_COOKIE_NAME } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+  let entreprise: { stripe_customer_id: string | null } | null = null;
+  
   try {
     // Verificar autenticação
     const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Obter a empresa
-    const entreprise = await queryOne<{
+    entreprise = await queryOne<{
       stripe_customer_id: string | null;
     }>(
       'SELECT stripe_customer_id FROM entreprises WHERE user_id = $1',
