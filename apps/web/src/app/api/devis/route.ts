@@ -133,7 +133,15 @@ export async function POST(request: NextRequest) {
       const devisNumero = devisResult.rows[0].numero;
       
       // 2. Insérer les meubles du devis
+      console.log(`🛋️ Inserindo ${payload.meubles.length} móveis...`);
       for (const meuble of payload.meubles) {
+        console.log('🪑 Inserindo móvel:', {
+          id: meuble.meuble_id,
+          nom: meuble.meuble_nom,
+          categorie: meuble.meuble_categorie,
+          quantite: meuble.quantite
+        });
+        
         await client.query(
           `INSERT INTO devis_meubles (
             devis_id,
@@ -154,6 +162,7 @@ export async function POST(request: NextRequest) {
             meuble.poids_unitaire_kg || null,
           ]
         );
+        console.log('✅ Móvel inserido com sucesso');
       }
       
       // 3. Valider la transaction
