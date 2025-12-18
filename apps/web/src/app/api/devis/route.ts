@@ -20,44 +20,28 @@ interface DevisPayload {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🔥 API /api/devis - Nouvelle requête reçue');
   const client = await pool.connect();
   
   try {
     const payload: DevisPayload = await request.json();
-    console.log('📦 Payload reçu:', { 
-      ...payload, 
-      meubles: payload.meubles?.length || 0,
-      email: payload.email || 'MANQUANT'
-    });
     
     // Validation basique
     if (!payload.email || !payload.nom || !payload.adresse_depart || !payload.adresse_arrivee) {
-      console.log('❌ Validation échouée - Données manquantes');
       return NextResponse.json(
         { error: 'Données manquantes' },
         { status: 400 }
       );
     }
     
-    console.log('✅ Validation basique réussie');
-    
     // Trouver l'entreprise
     let entreprise: Entreprise | null = null;
     
-    console.log('🏢 Recherche entreprise...', {
-      id: payload.entreprise_id || 'non fourni',
-      slug: payload.entreprise_slug || 'non fourni'
-    });
-    
     if (payload.entreprise_id) {
-      console.log('🔍 Recherche par ID:', payload.entreprise_id);
       entreprise = await queryOne<Entreprise>(
         'SELECT * FROM entreprises WHERE id = $1',
         [payload.entreprise_id]
       );
     } else if (payload.entreprise_slug) {
-      console.log('🔍 Recherche par slug:', payload.entreprise_slug);
       entreprise = await queryOne<Entreprise>(
         'SELECT * FROM entreprises WHERE slug = $1',
         [payload.entreprise_slug]
@@ -65,14 +49,11 @@ export async function POST(request: NextRequest) {
     }
     
     if (!entreprise) {
-      console.log('❌ Entreprise non trouvée');
       return NextResponse.json(
         { error: 'Entreprise non trouvée' },
         { status: 404 }
       );
     }
-    
-    console.log('✅ Entreprise trouvée:', entreprise.nom);
     
     // Démarrer la transaction
     await client.query('BEGIN');
@@ -133,15 +114,7 @@ export async function POST(request: NextRequest) {
       const devisNumero = devisResult.rows[0].numero;
       
       // 2. Insérer les meubles du devis
-      console.log(`🛋️ Inserindo ${payload.meubles.length} móveis...`);
       for (const meuble of payload.meubles) {
-        console.log('🪑 Inserindo móvel:', {
-          id: meuble.meuble_id,
-          nom: meuble.meuble_nom,
-          categorie: meuble.meuble_categorie,
-          quantite: meuble.quantite
-        });
-        
         await client.query(
           `INSERT INTO devis_meubles (
             devis_id,
@@ -162,18 +135,13 @@ export async function POST(request: NextRequest) {
             meuble.poids_unitaire_kg || null,
           ]
         );
-        console.log('✅ Móvel inserido com sucesso');
       }
       
       // 3. Valider la transaction
       await client.query('COMMIT');
       
       // 4. Envoyer les emails (en arrière-plan)
-      console.log('📧 Iniciando envio de emails em background...');
-      sendEmails(devisId, entreprise, payload).catch(error => {
-        console.error('❌ Erro no envio de emails (background):', error);
-        console.error('❌ Stack trace email:', error.stack);
-      });
+      sendEmails(devisId, entreprise, payload).catch(console.error);
       
       return NextResponse.json({
         success: true,
@@ -188,15 +156,9 @@ export async function POST(request: NextRequest) {
     }
     
   } catch (error) {
-    console.error('❌ Erreur API devis:', error);
-    console.error('❌ Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
-    console.error('❌ Payload reçu:', JSON.stringify(payload, null, 2));
-    
+    console.error('Erreur API devis:', error);
     return NextResponse.json(
-      { 
-        error: 'Erreur lors de l\'enregistrement du devis',
-        details: error instanceof Error ? error.message : 'Erreur inconnue'
-      },
+      { error: 'Erreur lors de l\'enregistrement du devis' },
       { status: 500 }
     );
   } finally {
