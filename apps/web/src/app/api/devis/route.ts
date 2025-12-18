@@ -45,12 +45,19 @@ export async function POST(request: NextRequest) {
     // Trouver l'entreprise
     let entreprise: Entreprise | null = null;
     
+    console.log('🏢 Recherche entreprise...', {
+      id: payload.entreprise_id || 'non fourni',
+      slug: payload.entreprise_slug || 'non fourni'
+    });
+    
     if (payload.entreprise_id) {
+      console.log('🔍 Recherche par ID:', payload.entreprise_id);
       entreprise = await queryOne<Entreprise>(
         'SELECT * FROM entreprises WHERE id = $1',
         [payload.entreprise_id]
       );
     } else if (payload.entreprise_slug) {
+      console.log('🔍 Recherche par slug:', payload.entreprise_slug);
       entreprise = await queryOne<Entreprise>(
         'SELECT * FROM entreprises WHERE slug = $1',
         [payload.entreprise_slug]
@@ -58,11 +65,14 @@ export async function POST(request: NextRequest) {
     }
     
     if (!entreprise) {
+      console.log('❌ Entreprise non trouvée');
       return NextResponse.json(
         { error: 'Entreprise non trouvée' },
         { status: 404 }
       );
     }
+    
+    console.log('✅ Entreprise trouvée:', entreprise.nom);
     
     // Démarrer la transaction
     await client.query('BEGIN');
@@ -150,7 +160,11 @@ export async function POST(request: NextRequest) {
       await client.query('COMMIT');
       
       // 4. Envoyer les emails (en arrière-plan)
-      sendEmails(devisId, entreprise, payload).catch(console.error);
+      console.log('📧 Iniciando envio de emails em background...');
+      sendEmails(devisId, entreprise, payload).catch(error => {
+        console.error('❌ Erro no envio de emails (background):', error);
+        console.error('❌ Stack trace email:', error.stack);
+      });
       
       return NextResponse.json({
         success: true,
