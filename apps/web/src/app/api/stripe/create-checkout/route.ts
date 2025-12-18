@@ -109,8 +109,24 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Erreur checkout Stripe:', error);
+    console.error('Type d\'erreur:', error.type);
+    console.error('Code d\'erreur:', error.code);
+    
+    let errorMessage = 'Erreur lors de la création du checkout';
+    
+    if (error.type === 'StripeAuthenticationError') {
+      errorMessage = 'Configuration Stripe invalide. Vérifiez les clés API.';
+    } else if (error.message?.includes('price')) {
+      errorMessage = 'ID de prix Stripe invalide. Vérifiez la configuration des plans.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return NextResponse.json(
-      { error: error.message || 'Erreur lors de la création du checkout' },
+      { 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     );
   }
