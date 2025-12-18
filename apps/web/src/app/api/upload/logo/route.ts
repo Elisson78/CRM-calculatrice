@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
 import { query } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
@@ -42,34 +39,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Créer le dossier si nécessaire
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'logos');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
-    // Générer un nom de fichier unique
-    const extension = file.name.split('.').pop() || 'png';
-    const fileName = `${entrepriseId}-${Date.now()}.${extension}`;
-    const filePath = path.join(uploadDir, fileName);
-
-    // Sauvegarder le fichier
+    // Converter arquivo para Base64
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    const base64Data = buffer.toString('base64');
+    
+    // Criar data URL completa
+    const logoDataUrl = `data:${file.type};base64,${base64Data}`;
+    
+    console.log(`📦 Convertendo logo para Base64: ${file.type}, ${Math.round(buffer.length / 1024)}KB`);
 
-    // URL relative du logo
-    const logoUrl = `/uploads/logos/${fileName}`;
-
-    // Mettre à jour la base de données
+    // Salvar no banco de dados (tanto logo_data quanto logo_url para compatibilidade)
     await query(
-      'UPDATE entreprises SET logo_url = $1, updated_at = NOW() WHERE id = $2',
-      [logoUrl, entrepriseId]
+      `UPDATE entreprises SET 
+         logo_data = $1,
+         logo_url = $2,
+         updated_at = NOW() 
+       WHERE id = $3`,
+      [logoDataUrl, logoDataUrl, entrepriseId]
     );
+
+    console.log('✅ Logo salvo no banco PostgreSQL como Base64');
 
     return NextResponse.json({
       success: true,
-      logoUrl,
+      logoUrl: logoDataUrl,
       message: 'Logo uploadé avec succès',
     });
 
@@ -95,9 +89,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Mettre à jour la base de données
+    // Limpar dados do logo (tanto URL quanto Base64)
     await query(
-      'UPDATE entreprises SET logo_url = NULL, updated_at = NOW() WHERE id = $1',
+      'UPDATE entreprises SET logo_url = NULL, logo_data = NULL, updated_at = NOW() WHERE id = $1',
       [entrepriseId]
     );
 

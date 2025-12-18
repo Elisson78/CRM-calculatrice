@@ -50,6 +50,7 @@ interface Entreprise {
   smtp_secure?: boolean;
   use_custom_smtp?: boolean;
   logo_size?: number;
+  logo_data?: string | null;
 }
 
 export default function SettingsPage() {
@@ -121,8 +122,10 @@ export default function SettingsPage() {
           console.log('✅ Données entreprise récupérées:', entData.entreprise);
           
           setEntreprise(entData.entreprise);
+          // Usar logo_data se disponível, senão usar logo_url
+          const logoToUse = entData.entreprise.logo_data || entData.entreprise.logo_url;
           // Só atualizar o preview se pas déjà défini (éviter d'écraser après upload)
-          setLogoPreview(prev => prev || entData.entreprise.logo_url);
+          setLogoPreview(prev => prev || logoToUse);
           
           const newFormData = {
             nom: entData.entreprise.nom || '',

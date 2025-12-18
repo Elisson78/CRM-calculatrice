@@ -36,7 +36,8 @@ const pool = new Pool(config);
 
 // Liste des migrations à exécuter dans l'ordre
 const migrations = [
-  '../migrations/005_add_logo_size.sql'
+  '../migrations/005_add_logo_size.sql',
+  '../migrations/006_add_logo_data.sql'
 ];
 
 async function runAllMigrations() {

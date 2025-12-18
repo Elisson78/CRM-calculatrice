@@ -53,6 +53,7 @@ export interface Entreprise {
   
   // Logo
   logo_size: number | null;
+  logo_data: string | null;
   
   // Statut
   actif: boolean;
