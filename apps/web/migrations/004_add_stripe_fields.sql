@@ -27,3 +27,5 @@ COMMENT ON COLUMN entreprises.subscription_cancel_at_period_end IS 'Se a assinat
 
 
 
+
+

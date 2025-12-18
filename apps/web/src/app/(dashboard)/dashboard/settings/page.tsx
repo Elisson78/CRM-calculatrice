@@ -248,7 +248,9 @@ export default function SettingsPage() {
         const result = await response.json();
         console.log('✅ Sauvegarde réussie:', result);
         setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+        
+        // Afficher un message de succès temporaire 
+        setTimeout(() => setSaved(false), 4000);
         
         // Recharger les données pour confirmer la sauvegarde
         await fetchEntreprise();
@@ -979,10 +981,21 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Messages d'erreur */}
+          {/* Messages d'erreur et de succès */}
           {submitError && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-600 text-sm">{submitError}</p>
+            </div>
+          )}
+          
+          {saved && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-600" />
+                <p className="text-green-600 text-sm font-medium">
+                  Configuration enregistrée avec succès !
+                </p>
+              </div>
             </div>
           )}
 
@@ -1002,12 +1015,12 @@ export default function SettingsPage() {
               ) : saved ? (
                 <>
                   <Check className="w-5 h-5" />
-                  Enregistré!
+                  Configuration sauvegardée !
                 </>
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  Enregistrer
+                  Enregistrer la configuration
                 </>
               )}
             </button>
