@@ -36,23 +36,23 @@ async function checkTableStructure() {
   const client = await pool.connect();
   
   try {
-    console.log('🔍 Verificando estrutura da tabela devis_meubles...\n');
+    console.log('🔍 Verificando estrutura da tabela entreprises...\n');
     
     // Verificar se a tabela existe
     const tableExists = await client.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_schema = 'public' 
-        AND table_name = 'devis_meubles'
+        AND table_name = 'entreprises'
       );
     `);
     
     if (!tableExists.rows[0].exists) {
-      console.log('❌ Tabela devis_meubles não existe!');
+      console.log('❌ Tabela entreprises não existe!');
       return;
     }
     
-    console.log('✅ Tabela devis_meubles existe');
+    console.log('✅ Tabela entreprises existe');
     
     // Verificar estrutura da tabela
     const columns = await client.query(`
@@ -63,11 +63,11 @@ async function checkTableStructure() {
         column_default,
         character_maximum_length
       FROM information_schema.columns 
-      WHERE table_name = 'devis_meubles'
+      WHERE table_name = 'entreprises'
       ORDER BY ordinal_position;
     `);
     
-    console.log('\n📋 Estrutura da tabela devis_meubles:');
+    console.log('\n📋 Estrutura da tabela entreprises:');
     columns.rows.forEach(col => {
       console.log(`   ${col.column_name}: ${col.data_type}${
         col.character_maximum_length ? `(${col.character_maximum_length})` : ''
@@ -89,7 +89,7 @@ async function checkTableStructure() {
         ON tc.constraint_name = kcu.constraint_name
       LEFT JOIN information_schema.constraint_column_usage AS ccu
         ON ccu.constraint_name = tc.constraint_name
-      WHERE tc.table_name = 'devis_meubles';
+      WHERE tc.table_name = 'entreprises';
     `);
     
     if (constraints.rows.length > 0) {
@@ -105,7 +105,7 @@ async function checkTableStructure() {
     
     // Verificar alguns registros existentes
     const sampleData = await client.query(`
-      SELECT * FROM devis_meubles 
+      SELECT * FROM entreprises 
       ORDER BY created_at DESC 
       LIMIT 3
     `);
@@ -123,18 +123,27 @@ async function checkTableStructure() {
       console.log('\n📊 Nenhum registro encontrado na tabela');
     }
     
-    // Verificar tabela meubles também
-    console.log('\n🔍 Verificando tabela meubles...');
-    const meublesColumns = await client.query(`
-      SELECT column_name, data_type FROM information_schema.columns 
-      WHERE table_name = 'meubles'
-      ORDER BY ordinal_position;
-    `);
+    // Verificar campos relacionados a planos/pagamentos
+    const planFields = columns.rows.filter(col => 
+      col.column_name.includes('plan') || 
+      col.column_name.includes('subscription') || 
+      col.column_name.includes('stripe')
+    );
     
-    console.log('📋 Colunas da tabela meubles:');
-    meublesColumns.rows.forEach(col => {
-      console.log(`   ${col.column_name}: ${col.data_type}`);
-    });
+    console.log('\n💳 CAMPOS RELACIONADOS A PAGAMENTOS/PLANOS:');
+    if (planFields.length > 0) {
+      planFields.forEach(col => {
+        console.log(`✅ ${col.column_name} (${col.data_type})`);
+      });
+    } else {
+      console.log('❌ Nenhum campo relacionado a planos/pagamentos encontrado');
+      console.log('\n📝 CAMPOS QUE PRECISAM SER ADICIONADOS:');
+      console.log('   - plan_type (varchar) - Tipo do plano (basic, pro, enterprise)');
+      console.log('   - stripe_customer_id (varchar) - ID do cliente no Stripe');
+      console.log('   - stripe_subscription_id (varchar) - ID da assinatura no Stripe');
+      console.log('   - subscription_status (varchar) - Status da assinatura');
+      console.log('   - subscription_expires_at (timestamp) - Data de expiração');
+    }
     
   } catch (error) {
     console.error('❌ Erro:', error.message);

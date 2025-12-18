@@ -142,8 +142,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
         plan = 'basic',
         subscription_status = 'canceled',
         stripe_subscription_id = NULL,
-        subscription_current_period_start = NULL,
-        subscription_current_period_end = NULL,
+        subscription_expires_at = NULL,
+        plan_active = false,
         updated_at = NOW()
       WHERE id = $1`,
       [entrepriseId]
@@ -202,21 +202,17 @@ async function updateEntrepriseSubscription(
     `UPDATE entreprises SET
       plan = $1,
       stripe_subscription_id = $2,
-      stripe_price_id = $3,
-      subscription_status = $4,
-      subscription_current_period_start = $5,
-      subscription_current_period_end = $6,
-      subscription_cancel_at_period_end = $7,
+      subscription_status = $3,
+      subscription_expires_at = $4,
+      plan_active = $5,
       updated_at = NOW()
-    WHERE id = $8`,
+    WHERE id = $6`,
     [
       plan,
       subscription.id,
-      priceId,
       subscription.status,
-      new Date((subscription as any).current_period_start * 1000),
       new Date((subscription as any).current_period_end * 1000),
-      (subscription as any).cancel_at_period_end,
+      subscription.status === 'active',
       entrepriseId,
     ]
   );

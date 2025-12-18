@@ -41,8 +41,10 @@ interface Entreprise {
   message_formulaire: string;
   plan: 'basic' | 'pro' | 'enterprise';
   subscription_status?: string | null;
-  subscription_current_period_end?: string | null;
+  subscription_expires_at?: string | null;
   stripe_subscription_id?: string | null;
+  stripe_customer_id?: string | null;
+  plan_active?: boolean;
   smtp_host?: string | null;
   smtp_port?: number | null;
   smtp_user?: string | null;
@@ -469,12 +471,24 @@ export default function SettingsPage() {
               </div>
 
               {/* Informações da subscription */}
-              {entreprise.subscription_current_period_end && (
+              {entreprise.subscription_expires_at && (
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <Calendar className="w-4 h-4" />
                   <span>
-                    Prochain renouvellement: {formatDate(entreprise.subscription_current_period_end)}
+                    Prochain renouvellement: {formatDate(entreprise.subscription_expires_at)}
                   </span>
+                </div>
+              )}
+              
+              {/* Status da assinatura */}
+              {entreprise.subscription_status && (
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <div className={`w-2 h-2 rounded-full ${
+                    entreprise.subscription_status === 'active' ? 'bg-green-500' : 
+                    entreprise.subscription_status === 'past_due' ? 'bg-orange-500' : 
+                    'bg-red-500'
+                  }`} />
+                  <span>Status: {entreprise.subscription_status}</span>
                 </div>
               )}
 

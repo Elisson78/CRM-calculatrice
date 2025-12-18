@@ -59,6 +59,13 @@ export interface Entreprise {
   actif: boolean;
   plan: 'basic' | 'pro' | 'enterprise';
   
+  // Campos de assinatura Stripe
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  subscription_status: string;
+  subscription_expires_at: Date | null;
+  plan_active: boolean;
+  
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
