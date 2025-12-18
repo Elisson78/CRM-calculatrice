@@ -230,11 +230,19 @@ function createTransporter(data: DevisEmailData) {
     return nodemailer.createTransport({
       host: data.entreprise.smtp_host,
       port: data.entreprise.smtp_port || 587,
-      secure: data.entreprise.smtp_secure !== false, // true pour 465, false pour autres ports
+      secure: data.entreprise.smtp_port === 465, // true apenas para porta 465, false para 587
       auth: {
         user: data.entreprise.smtp_user,
         pass: data.entreprise.smtp_password,
       },
+      // Configurações adicionais para Hostinger
+      tls: {
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
+      },
+      connectionTimeout: 60000,
+      greetingTimeout: 30000,
+      socketTimeout: 60000,
     });
   }
   
@@ -301,6 +309,8 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
         ? data.entreprise.smtp_user  // Usar email SMTP se configurado
         : data.entreprise.email;     // Senão usar email padrão da empresa
         
+      console.log(`📧 Tentativa de envio para empresa: ${entrepriseDestEmail}`);
+      
       // Email à l'entreprise
       await transporter.sendMail({
         from: `"Moovelabs CRM" <${fromEmail}>`,
@@ -309,10 +319,14 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
         html: getEntrepriseEmailTemplate(data),
       });
       result.entrepriseSent = true;
-      console.log(`📧 Email envoyé à l'entreprise: ${entrepriseDestEmail} via ${fromEmail}`);
+      console.log(`✅ Email envoyé à l'entreprise: ${entrepriseDestEmail} via ${fromEmail}`);
     } catch (error) {
       console.error('❌ Erreur envoi email entreprise:', error);
       console.error('❌ Détails de l\'erreur:', error.message);
+      console.error('❌ Code d\'erreur:', error.code);
+      console.error('❌ Commande:', error.command);
+      console.error('❌ Response:', error.response);
+      console.error('❌ ResponseCode:', error.responseCode);
     }
 
   } catch (error) {
