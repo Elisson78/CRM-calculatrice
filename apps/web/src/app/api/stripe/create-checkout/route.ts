@@ -111,6 +111,11 @@ export async function POST(request: NextRequest) {
     console.error('Erreur checkout Stripe:', error);
     console.error('Type d\'erreur:', error.type);
     console.error('Code d\'erreur:', error.code);
+    console.error('🔧 DEBUG - Variáveis Stripe:');
+    console.error('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? 
+      `${process.env.STRIPE_SECRET_KEY.substring(0, 12)}***${process.env.STRIPE_SECRET_KEY.slice(-4)}` : 'NÃO DEFINIDO');
+    console.error('STRIPE_PRICE_ID_BASIC:', process.env.STRIPE_PRICE_ID_BASIC || 'NÃO DEFINIDO');
+    console.error('NODE_ENV:', process.env.NODE_ENV);
     
     let errorMessage = 'Erreur lors de la création du checkout';
     
@@ -125,7 +130,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details: error.message,
+        debug: {
+          hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
+          secretKeyEnd: process.env.STRIPE_SECRET_KEY?.slice(-4) || 'N/A',
+          priceId: process.env.STRIPE_PRICE_ID_BASIC || 'N/A',
+          errorType: error.type
+        }
       },
       { status: 500 }
     );
