@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCalculatriceStore } from '@/stores/calculatriceStore';
+import type { Entreprise } from '@/types/database';
 
 export function CalculatriceHeader() {
   const { entreprise } = useCalculatriceStore();
