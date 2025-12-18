@@ -221,6 +221,12 @@ function getEntrepriseEmailTemplate(data: DevisEmailData): string {
 function createTransporter(data: DevisEmailData) {
   // Si l'entreprise utilise un SMTP personnalisé
   if (data.entreprise.use_custom_smtp && data.entreprise.smtp_host && data.entreprise.smtp_user) {
+    console.log('🔧 Configuration SMTP personnalisée:');
+    console.log(`   - Host: ${data.entreprise.smtp_host}`);
+    console.log(`   - Port: ${data.entreprise.smtp_port || 587}`);
+    console.log(`   - User: ${data.entreprise.smtp_user}`);
+    console.log(`   - Secure: ${data.entreprise.smtp_secure !== false}`);
+    
     return nodemailer.createTransport({
       host: data.entreprise.smtp_host,
       port: data.entreprise.smtp_port || 587,
@@ -231,6 +237,8 @@ function createTransporter(data: DevisEmailData) {
       },
     });
   }
+  
+  console.log('🔧 Configuration email par défaut (Gmail Moovelabs)');
   
   // Configuration par défaut (Gmail de Moovelabs)
   return nodemailer.createTransport({
@@ -255,6 +263,12 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
   };
 
   try {
+    console.log('📧 Début envoi emails - Configuration:');
+    console.log(`   - Entreprise: ${data.entreprise.nom}`);
+    console.log(`   - Use custom SMTP: ${data.entreprise.use_custom_smtp}`);
+    console.log(`   - SMTP Host: ${data.entreprise.smtp_host || 'non configuré'}`);
+    console.log(`   - SMTP User: ${data.entreprise.smtp_user || 'non configuré'}`);
+    
     const transporter = createTransporter(data);
     
     // Déterminer l'adresse d'envoi
@@ -282,17 +296,23 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
     }
 
     try {
+      // Déterminer l'email de destination de l'entreprise
+      const entrepriseDestEmail = data.entreprise.use_custom_smtp && data.entreprise.smtp_user 
+        ? data.entreprise.smtp_user  // Usar email SMTP se configurado
+        : data.entreprise.email;     // Senão usar email padrão da empresa
+        
       // Email à l'entreprise
       await transporter.sendMail({
         from: `"Moovelabs CRM" <${fromEmail}>`,
-        to: data.entreprise.email,
+        to: entrepriseDestEmail,
         subject: `🔔 Nouvelle demande de devis - ${data.clientNom} (${data.volumeTotal.toFixed(1)} m³)`,
         html: getEntrepriseEmailTemplate(data),
       });
       result.entrepriseSent = true;
-      console.log(`📧 Email envoyé à l'entreprise: ${data.entreprise.email} via ${fromEmail}`);
+      console.log(`📧 Email envoyé à l'entreprise: ${entrepriseDestEmail} via ${fromEmail}`);
     } catch (error) {
       console.error('❌ Erreur envoi email entreprise:', error);
+      console.error('❌ Détails de l\'erreur:', error.message);
     }
 
   } catch (error) {
