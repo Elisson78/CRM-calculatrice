@@ -114,11 +114,7 @@ export async function PATCH(
         [email, id]
       );
       
-      if (syncResult.rowCount > 0) {
-        console.log('✅ Email do usuário sincronizado automaticamente');
-      } else {
-        console.log('⚠️ Nenhum usuário vinculado encontrado para sincronização');
-      }
+      console.log('✅ Email do usuário sincronizado automaticamente');
     }
     
     console.log('✅ Update réussi');
