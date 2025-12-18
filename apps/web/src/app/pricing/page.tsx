@@ -62,6 +62,11 @@ export default function PricingPage() {
 
       const data = await response.json();
 
+      if (!response.ok) {
+        console.error('Erro do servidor:', data);
+        throw new Error(data.error || data.details || 'Erro na resposta do servidor');
+      }
+
       if (data.url) {
         window.location.href = data.url;
       } else {
@@ -69,7 +74,8 @@ export default function PricingPage() {
       }
     } catch (error) {
       console.error('Erreur checkout:', error);
-      alert('Erreur lors de la création du checkout');
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la création du checkout';
+      alert(errorMessage);
     } finally {
       setLoading(null);
     }
@@ -224,6 +230,7 @@ export default function PricingPage() {
     </div>
   );
 }
+
 
 
 

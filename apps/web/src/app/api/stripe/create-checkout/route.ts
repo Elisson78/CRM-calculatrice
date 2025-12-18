@@ -39,8 +39,11 @@ export async function POST(request: NextRequest) {
       nom: string;
       email: string;
       stripe_customer_id: string | null;
+      subscription_status: string | null;
+      stripe_subscription_id: string | null;
+      plan: string | null;
     }>(
-      'SELECT id, nom, email, stripe_customer_id FROM entreprises WHERE user_id = $1',
+      'SELECT id, nom, email, stripe_customer_id, subscription_status, stripe_subscription_id, plan FROM entreprises WHERE user_id = $1',
       [payload.userId]
     );
 
@@ -74,6 +77,18 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
                    request.headers.get('origin') || 
                    'http://localhost:3000';
+
+    // Verificar se a empresa já tem uma assinatura ativa
+    if (entreprise.subscription_status === 'active' && entreprise.stripe_subscription_id) {
+      return NextResponse.json(
+        { 
+          error: 'Vous avez déjà un abonnement actif. Utilisez le portail de facturation pour modifier votre plan.',
+          usePortal: true,
+          redirectToPortal: true
+        },
+        { status: 400 }
+      );
+    }
 
     // Criar sessão de checkout
     const stripe = getStripe();
@@ -142,6 +157,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 
 
 
