@@ -46,6 +46,7 @@ const entrepriseNavItems: NavItem[] = [
   { href: '/dashboard', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
   { href: '/dashboard/devis', icon: <FileText className="w-5 h-5" />, label: 'Devis' },
   { href: '/dashboard/clients', icon: <Users className="w-5 h-5" />, label: 'Clients' },
+  { href: '/dashboard/plans', icon: <CreditCard className="w-5 h-5" />, label: 'Plans et facturation' },
   { href: '/dashboard/settings', icon: <Settings className="w-5 h-5" />, label: 'Paramètres' },
 ];
 

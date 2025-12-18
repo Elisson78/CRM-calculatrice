@@ -514,7 +514,7 @@ export default function SettingsPage() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => router.push('/pricing')}
+                    onClick={() => router.push('/dashboard/plans')}
                     className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
                     <Crown className="w-4 h-4" />
@@ -522,18 +522,13 @@ export default function SettingsPage() {
                   </button>
                 )}
 
-                {entreprise.plan !== 'enterprise' && (
-                  <button
-                    onClick={() => {
-                      const nextPlan = entreprise.plan === 'basic' ? 'pro' : 'enterprise';
-                      handleUpgrade(nextPlan);
-                    }}
-                    className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                  >
-                    <Zap className="w-4 h-4" />
-                    Upgrade
-                  </button>
-                )}
+                <button
+                  onClick={() => router.push('/dashboard/plans')}
+                  className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Voir tous les plans
+                </button>
               </div>
             </div>
           </div>
