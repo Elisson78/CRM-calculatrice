@@ -322,11 +322,13 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
       console.log(`✅ Email envoyé à l'entreprise: ${entrepriseDestEmail} via ${fromEmail}`);
     } catch (error) {
       console.error('❌ Erreur envoi email entreprise:', error);
-      console.error('❌ Détails de l\'erreur:', error.message);
-      console.error('❌ Code d\'erreur:', error.code);
-      console.error('❌ Commande:', error.command);
-      console.error('❌ Response:', error.response);
-      console.error('❌ ResponseCode:', error.responseCode);
+      if (error instanceof Error) {
+        console.error('❌ Détails de l\'erreur:', error.message);
+        console.error('❌ Code d\'erreur:', (error as any).code);
+        console.error('❌ Commande:', (error as any).command);
+        console.error('❌ Response:', (error as any).response);
+        console.error('❌ ResponseCode:', (error as any).responseCode);
+      }
     }
 
   } catch (error) {
