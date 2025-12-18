@@ -56,12 +56,40 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Erreur portal Stripe:', error);
+    console.error('Type d\'erreur:', error.type);
+    console.error('Code d\'erreur:', error.code);
+    console.error('Message détaillé:', error.message);
+    
+    let errorMessage = 'Erreur lors de la création du portal';
+    
+    if (error.type === 'StripeInvalidRequestError') {
+      if (error.message?.includes('customer portal')) {
+        errorMessage = 'Le portail client Stripe n\'est pas configuré. Veuillez contacter le support.';
+      } else if (error.message?.includes('customer')) {
+        errorMessage = 'Client Stripe introuvable ou invalide.';
+      } else {
+        errorMessage = `Erreur Stripe: ${error.message}`;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return NextResponse.json(
-      { error: error.message || 'Erreur lors de la création du portal' },
+      { 
+        error: errorMessage,
+        details: error.message,
+        debug: {
+          hasCustomerId: !!entreprise?.stripe_customer_id,
+          customerId: entreprise?.stripe_customer_id?.slice(0, 8) + '...' || 'N/A',
+          errorType: error.type,
+          errorCode: error.code
+        }
+      },
       { status: 500 }
     );
   }
 }
+
 
 
 
