@@ -11,6 +11,7 @@ interface Entreprise {
   id: string;
   nom: string;
   email: string;
+  slug: string;
   plan: 'basic' | 'pro' | 'enterprise';
   subscription_status?: string | null;
   subscription_expires_at?: string | null;
