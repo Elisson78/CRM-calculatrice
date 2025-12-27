@@ -148,10 +148,13 @@ export default function DevisDetailPage() {
           date_demenagement: editForm.date_demenagement || null,
         });
         setIsEditing(false);
+      } else {
+        const data = await response.json();
+        throw new Error(data.error || 'Erreur inconnue lors de la sauvegarde');
       }
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de la sauvegarde');
+      alert(error instanceof Error ? error.message : 'Erreur lors de la sauvegarde');
     } finally {
       setSaving(false);
     }
@@ -541,7 +544,7 @@ export default function DevisDetailPage() {
                         </label>
                         <div>
                           <label className="block text-xs text-slate-500 mb-1">Nombre de déménageurs</label>
-                          <div className="relative">
+                          <div className="relative w-40">
                             <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
                               type="number"
