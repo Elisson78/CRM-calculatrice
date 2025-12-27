@@ -21,10 +21,10 @@ interface DevisPayload {
 
 export async function POST(request: NextRequest) {
   const client = await pool.connect();
-  
+
   try {
     const payload: DevisPayload = await request.json();
-    
+
     // Validation basique
     if (!payload.email || !payload.nom || !payload.adresse_depart || !payload.adresse_arrivee) {
       return NextResponse.json(
@@ -32,45 +32,45 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Trouver l'entreprise
     let entreprise: Entreprise | null = null;
-    
+
     if (payload.entreprise_id) {
       entreprise = await queryOne<Entreprise>(
-        'SELECT * FROM entreprises WHERE id = $1',
+        'SELECT *, email_notification_1, email_notification_2, email_notification_3 FROM entreprises WHERE id = $1',
         [payload.entreprise_id]
       );
     } else if (payload.entreprise_slug) {
       entreprise = await queryOne<Entreprise>(
-        'SELECT * FROM entreprises WHERE slug = $1',
+        'SELECT *, email_notification_1, email_notification_2, email_notification_3 FROM entreprises WHERE slug = $1',
         [payload.entreprise_slug]
       );
     }
-    
+
     if (!entreprise) {
       return NextResponse.json(
         { error: 'Entreprise non trouvée' },
         { status: 404 }
       );
     }
-    
+
     // Démarrer la transaction
     await client.query('BEGIN');
-    
+
     try {
       // Calculer le poids total
       const poidsTotal = payload.meubles.reduce(
         (acc, m) => acc + (m.quantite * (m.poids_unitaire_kg || 0)),
         0
       );
-      
+
       // Calculer le nombre de meubles
       const nombreMeubles = payload.meubles.reduce(
         (acc, m) => acc + m.quantite,
         0
       );
-      
+
       // 1. Créer le devis
       const devisResult = await client.query(
         `INSERT INTO devis (
@@ -109,10 +109,10 @@ export async function POST(request: NextRequest) {
           request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
         ]
       );
-      
+
       const devisId = devisResult.rows[0].id;
       const devisNumero = devisResult.rows[0].numero;
-      
+
       // 2. Insérer les meubles du devis
       for (const meuble of payload.meubles) {
         await client.query(
@@ -136,25 +136,25 @@ export async function POST(request: NextRequest) {
           ]
         );
       }
-      
+
       // 3. Valider la transaction
       await client.query('COMMIT');
-      
+
       // 4. Envoyer les emails (en arrière-plan)
       sendEmails(devisId, entreprise, payload).catch(console.error);
-      
+
       return NextResponse.json({
         success: true,
         devis_id: devisId,
         devis_numero: devisNumero,
         message: 'Demande de devis enregistrée avec succès',
       });
-      
+
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
     }
-    
+
   } catch (error) {
     console.error('Erreur API devis:', error);
     return NextResponse.json(
@@ -199,12 +199,17 @@ async function sendEmails(
         smtp_password: entreprise.smtp_password || undefined,
         smtp_secure: entreprise.smtp_secure !== undefined ? entreprise.smtp_secure : true,
         use_custom_smtp: entreprise.use_custom_smtp || false,
+        additionalEmails: [
+          entreprise.email_notification_1,
+          entreprise.email_notification_2,
+          entreprise.email_notification_3
+        ].filter((e): e is string => !!e && e.trim() !== ''),
       },
     };
-    
+
     // Envoyer les emails
     const result = await sendDevisEmails(emailData);
-    
+
     // Marquer les emails comme envoyés
     await query(
       `UPDATE devis SET 
@@ -215,9 +220,9 @@ async function sendEmails(
       WHERE id = $3`,
       [result.clientSent, result.entrepriseSent, devisId]
     );
-    
+
     console.log(`📧 Emails envoyés - Client: ${result.clientSent}, Entreprise: ${result.entrepriseSent}`);
-    
+
   } catch (error) {
     console.error('Erreur envoi emails:', error);
   }

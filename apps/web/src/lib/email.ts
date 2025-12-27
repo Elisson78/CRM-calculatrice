@@ -26,6 +26,7 @@ interface DevisEmailData {
     smtp_password?: string;
     smtp_secure?: boolean;
     use_custom_smtp?: boolean;
+    additionalEmails?: string[];
   };
 }
 
@@ -226,7 +227,7 @@ function createTransporter(data: DevisEmailData) {
     console.log(`   - Port: ${data.entreprise.smtp_port || 587}`);
     console.log(`   - User: ${data.entreprise.smtp_user}`);
     console.log(`   - Secure: ${data.entreprise.smtp_secure !== false}`);
-    
+
     return nodemailer.createTransport({
       host: data.entreprise.smtp_host,
       port: data.entreprise.smtp_port || 587,
@@ -245,9 +246,9 @@ function createTransporter(data: DevisEmailData) {
       socketTimeout: 60000,
     });
   }
-  
+
   console.log('🔧 Configuration email par défaut (Gmail Moovelabs)');
-  
+
   // Configuration par défaut (Gmail de Moovelabs)
   return nodemailer.createTransport({
     service: 'gmail',
@@ -276,14 +277,14 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
     console.log(`   - Use custom SMTP: ${data.entreprise.use_custom_smtp}`);
     console.log(`   - SMTP Host: ${data.entreprise.smtp_host || 'non configuré'}`);
     console.log(`   - SMTP User: ${data.entreprise.smtp_user || 'non configuré'}`);
-    
+
     const transporter = createTransporter(data);
-    
+
     // Déterminer l'adresse d'envoi
-    const fromEmail = data.entreprise.use_custom_smtp && data.entreprise.smtp_user 
-      ? data.entreprise.smtp_user 
+    const fromEmail = data.entreprise.use_custom_smtp && data.entreprise.smtp_user
+      ? data.entreprise.smtp_user
       : process.env.EMAIL_USER;
-      
+
     if (!fromEmail) {
       result.error = 'Configuration email manquante';
       return result;
@@ -305,16 +306,17 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
 
     try {
       // Déterminer l'email de destination de l'entreprise
-      const entrepriseDestEmail = data.entreprise.use_custom_smtp && data.entreprise.smtp_user 
+      const entrepriseDestEmail = data.entreprise.use_custom_smtp && data.entreprise.smtp_user
         ? data.entreprise.smtp_user  // Usar email SMTP se configurado
         : data.entreprise.email;     // Senão usar email padrão da empresa
-        
+
       console.log(`📧 Tentativa de envio para empresa: ${entrepriseDestEmail}`);
-      
+
       // Email à l'entreprise
       await transporter.sendMail({
         from: `"Moovelabs CRM" <${fromEmail}>`,
         to: entrepriseDestEmail,
+        cc: data.entreprise.additionalEmails,
         subject: `🔔 Nouvelle demande de devis - ${data.clientNom} (${data.volumeTotal.toFixed(1)} m³)`,
         html: getEntrepriseEmailTemplate(data),
       });

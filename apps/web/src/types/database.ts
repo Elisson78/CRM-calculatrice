@@ -25,24 +25,27 @@ export interface Entreprise {
   ville: string | null;
   pays: string;
   logo_url: string | null;
-  
+
   // Personnalisation
   couleur_primaire: string;
   couleur_secondaire: string;
   couleur_accent: string;
   couleur_fond: string;
-  
+
   // Liens
   slug: string;
   domaine_personnalise: string | null;
-  
+
   // Configuration
   email_notification: string | null;
   template_email_client: string | null;
   template_email_entreprise: string | null;
+  email_notification_1?: string | null;
+  email_notification_2?: string | null;
+  email_notification_3?: string | null;
   titre_calculatrice: string;
   message_formulaire: string;
-  
+
   // Configuration SMTP
   smtp_host: string | null;
   smtp_port: number | null;
@@ -50,22 +53,22 @@ export interface Entreprise {
   smtp_password: string | null;
   smtp_secure: boolean;
   use_custom_smtp: boolean;
-  
+
   // Logo
   logo_size: number | null;
   logo_data: string | null;
-  
+
   // Statut
   actif: boolean;
   plan: 'basic' | 'pro' | 'enterprise';
-  
+
   // Campos de assinatura Stripe
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   subscription_status: string;
   subscription_expires_at: Date | null;
   plan_active: boolean;
-  
+
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -125,58 +128,58 @@ export interface Devis {
   numero: string;
   entreprise_id: string;
   client_id: string | null;
-  
+
   // Informations client
   client_nom: string | null;
   client_prenom: string | null;
   client_email: string;
   client_telephone: string | null;
-  
+
   // Adresse de départ
   adresse_depart: string;
   code_postal_depart: string | null;
   ville_depart: string | null;
   avec_ascenseur_depart: boolean;
   etage_depart: number | null;
-  
+
   // Adresse d'arrivée
   adresse_arrivee: string;
   code_postal_arrivee: string | null;
   ville_arrivee: string | null;
   avec_ascenseur_arrivee: boolean;
   etage_arrivee: number | null;
-  
+
   // Dates
   date_demenagement: Date | null;
   date_arrivee: Date | null;
   flexibilite_dates: boolean;
   creneau_horaire: string | null;
-  
+
   // Volume et détails
   volume_total_m3: number;
   poids_total_kg: number;
   nombre_meubles: number;
   observations: string | null;
-  
+
   // Prix
   montant_estime: number | null;
   devise: string;
   nombre_demenageurs: number | null;
-  
+
   // Statut
   statut: 'nouveau' | 'vu' | 'en_traitement' | 'devis_envoye' | 'accepte' | 'refuse' | 'termine' | 'archive';
-  
+
   // Emails
   email_client_envoye: boolean;
   email_client_date: Date | null;
   email_entreprise_envoye: boolean;
   email_entreprise_date: Date | null;
-  
+
   // Métadonnées
   source: string;
   ip_address: string | null;
   user_agent: string | null;
-  
+
   created_at: Date;
   updated_at: Date;
 }

@@ -3,10 +3,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
-  Settings, 
-  Palette, 
+import {
+  ArrowLeft,
+  Settings,
+  Palette,
   Save,
   Loader2,
   ExternalLink,
@@ -45,6 +45,9 @@ interface Entreprise {
   stripe_subscription_id?: string | null;
   stripe_customer_id?: string | null;
   plan_active?: boolean;
+  email_notification_1?: string | null;
+  email_notification_2?: string | null;
+  email_notification_3?: string | null;
   smtp_host?: string | null;
   smtp_port?: number | null;
   smtp_user?: string | null;
@@ -81,6 +84,9 @@ export default function SettingsPage() {
     couleur_accent: '#dc2626',
     titre_calculatrice: 'Simulateur de volume pour déménagement',
     message_formulaire: '',
+    email_notification_1: '',
+    email_notification_2: '',
+    email_notification_3: '',
     smtp_host: '',
     smtp_port: 587,
     smtp_user: '',
@@ -97,10 +103,10 @@ export default function SettingsPage() {
   const fetchEntreprise = async () => {
     try {
       console.log('🔍 Début fetchEntreprise - Récupération des données utilisateur...');
-      
+
       const response = await fetch('/api/auth/me');
       console.log('📡 Réponse /api/auth/me:', response.status, response.statusText);
-      
+
       if (!response.ok) {
         console.error('❌ Échec authentification, redirection vers login');
         const errorText = await response.text();
@@ -108,27 +114,27 @@ export default function SettingsPage() {
         router.push('/login');
         return;
       }
-      
+
       const data = await response.json();
       console.log('✅ Données utilisateur récupérées:', data);
       setUser(data.user);
-      
+
       if (data.entreprise) {
         console.log('🏢 Récupération des données entreprise...', data.entreprise.id);
-        
+
         const entResponse = await fetch(`/api/entreprise/${data.entreprise.id}`);
         console.log('📡 Réponse /api/entreprise:', entResponse.status, entResponse.statusText);
-        
+
         if (entResponse.ok) {
           const entData = await entResponse.json();
           console.log('✅ Données entreprise récupérées:', entData.entreprise);
-          
+
           setEntreprise(entData.entreprise);
           // Usar logo_data se disponível, senão usar logo_url
           const logoToUse = entData.entreprise.logo_data || entData.entreprise.logo_url;
           // Só atualizar o preview se pas déjà défini (éviter d'écraser après upload)
           setLogoPreview(prev => prev || logoToUse);
-          
+
           const newFormData = {
             nom: entData.entreprise.nom || '',
             email: entData.entreprise.email || '',
@@ -139,6 +145,9 @@ export default function SettingsPage() {
             couleur_accent: entData.entreprise.couleur_accent || '#dc2626',
             titre_calculatrice: entData.entreprise.titre_calculatrice || 'Simulateur de volume pour déménagement',
             message_formulaire: entData.entreprise.message_formulaire || '',
+            email_notification_1: entData.entreprise.email_notification_1 || '',
+            email_notification_2: entData.entreprise.email_notification_2 || '',
+            email_notification_3: entData.entreprise.email_notification_3 || '',
             smtp_host: entData.entreprise.smtp_host || '',
             smtp_port: entData.entreprise.smtp_port || 587,
             smtp_user: entData.entreprise.smtp_user || '',
@@ -146,7 +155,7 @@ export default function SettingsPage() {
             smtp_secure: entData.entreprise.smtp_secure !== undefined ? entData.entreprise.smtp_secure : true,
             use_custom_smtp: entData.entreprise.use_custom_smtp || false,
           };
-          
+
           console.log('📝 FormData initialisé:', newFormData);
           setFormData(newFormData);
           setLogoSize(entData.entreprise.logo_size || 100);
@@ -226,7 +235,7 @@ export default function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('🚀 Début handleSubmit');
-    
+
     if (!entreprise) {
       console.error('❌ Pas d\'entreprise définie');
       setSubmitError('Aucune entreprise trouvée');
@@ -237,11 +246,11 @@ export default function SettingsPage() {
 
     setSaving(true);
     setSubmitError(null);
-    
+
     try {
       const payload = { ...formData, logo_size: logoSize };
       console.log('📦 Payload à envoyer:', payload);
-      
+
       const response = await fetch(`/api/entreprise/${entreprise.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -249,15 +258,15 @@ export default function SettingsPage() {
       });
 
       console.log('📡 Réponse API:', response.status, response.statusText);
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Sauvegarde réussie:', result);
         setSaved(true);
-        
+
         // Afficher un message de succès temporaire 
         setTimeout(() => setSaved(false), 4000);
-        
+
         // Recharger les données pour confirmer la sauvegarde
         await fetchEntreprise();
       } else {
@@ -312,20 +321,20 @@ export default function SettingsPage() {
       formData.append('entrepriseId', entreprise.id);
 
       console.log('Envoi vers API upload...');
-      
+
       const response = await fetch('/api/upload/logo', {
         method: 'POST',
         body: formData,
       });
 
       console.log('Réponse upload status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('Upload succès:', data);
         setLogoPreview(data.logoUrl);
         setEntreprise(prev => prev ? { ...prev, logo_url: data.logoUrl } : null);
-        
+
         // Utiliser le système de notification existant
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
@@ -450,7 +459,7 @@ export default function SettingsPage() {
               <CreditCard className="w-5 h-5" />
               Plan et facturation
             </h2>
-            
+
             <div className="space-y-4">
               {/* Plan atual */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-slate-50 rounded-lg">
@@ -479,15 +488,14 @@ export default function SettingsPage() {
                   </span>
                 </div>
               )}
-              
+
               {/* Status da assinatura */}
               {entreprise.subscription_status && (
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <div className={`w-2 h-2 rounded-full ${
-                    entreprise.subscription_status === 'active' ? 'bg-green-500' : 
-                    entreprise.subscription_status === 'past_due' ? 'bg-orange-500' : 
-                    'bg-red-500'
-                  }`} />
+                  <div className={`w-2 h-2 rounded-full ${entreprise.subscription_status === 'active' ? 'bg-green-500' :
+                    entreprise.subscription_status === 'past_due' ? 'bg-orange-500' :
+                      'bg-red-500'
+                    }`} />
                   <span>Status: {entreprise.subscription_status}</span>
                 </div>
               )}
@@ -535,31 +543,31 @@ export default function SettingsPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8 mt-8">
-          
+
           {/* Logo Upload */}
           <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
               <ImageIcon className="w-5 h-5" />
               Logo de l&apos;entreprise
             </h2>
-            
+
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
               {/* Preview */}
               <div className="relative mx-auto sm:mx-0">
-                <div 
+                <div
                   className="border-2 border-dashed border-slate-300 rounded-xl 
                            flex items-center justify-center bg-slate-50 overflow-hidden"
-                  style={{ 
-                    width: `${logoSize}px`, 
+                  style={{
+                    width: `${logoSize}px`,
                     height: `${logoSize}px`,
                     minWidth: '64px',
                     minHeight: '64px'
                   }}
                 >
                   {logoPreview ? (
-                    <img 
-                      src={logoPreview} 
-                      alt="Logo" 
+                    <img
+                      src={logoPreview}
+                      alt="Logo"
                       className="w-full h-full object-contain"
                     />
                   ) : (
@@ -574,7 +582,7 @@ export default function SettingsPage() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Contrôle de taille */}
                 <div className="mt-3">
                   <label className="block text-xs font-medium text-slate-600 mb-1">
@@ -594,7 +602,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Upload controls */}
               <div className="flex-1 w-full">
                 <p className="text-sm text-slate-600 mb-4">
@@ -602,7 +610,7 @@ export default function SettingsPage() {
                   <br />
                   <span className="text-slate-400">Formats: JPG, PNG, GIF, WebP, SVG. Max 5MB.</span>
                 </p>
-                
+
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input
                     ref={fileInputRef}
@@ -611,7 +619,7 @@ export default function SettingsPage() {
                     onChange={handleLogoUpload}
                     className="hidden"
                   />
-                  
+
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
@@ -622,7 +630,7 @@ export default function SettingsPage() {
                     <Upload className="w-4 h-4" />
                     {logoPreview ? 'Changer le logo' : 'Uploader un logo'}
                   </button>
-                  
+
                   {logoPreview && (
                     <button
                       type="button"
@@ -645,7 +653,7 @@ export default function SettingsPage() {
               <Settings className="w-5 h-5" />
               Informations de l&apos;entreprise
             </h2>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -660,7 +668,7 @@ export default function SettingsPage() {
                            focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Email
@@ -674,7 +682,52 @@ export default function SettingsPage() {
                            focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Email de notification (extra 1)
+                </label>
+                <input
+                  type="email"
+                  name="email_notification_1"
+                  value={formData.email_notification_1}
+                  onChange={handleChange}
+                  placeholder="exemple1@entreprise.com"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg
+                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Email de notification (extra 2)
+                </label>
+                <input
+                  type="email"
+                  name="email_notification_2"
+                  value={formData.email_notification_2}
+                  onChange={handleChange}
+                  placeholder="exemple2@entreprise.com"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg
+                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Email de notification (extra 3)
+                </label>
+                <input
+                  type="email"
+                  name="email_notification_3"
+                  value={formData.email_notification_3}
+                  onChange={handleChange}
+                  placeholder="exemple3@entreprise.com"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg
+                           focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Téléphone
@@ -689,7 +742,7 @@ export default function SettingsPage() {
                            focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Adresse
@@ -712,7 +765,7 @@ export default function SettingsPage() {
               <Palette className="w-5 h-5" />
               Personnalisation de la calculatrice
             </h2>
-            
+
             {/* Couleurs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               <div>
@@ -735,7 +788,7 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Couleur secondaire
@@ -756,7 +809,7 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Couleur accent
@@ -784,27 +837,27 @@ export default function SettingsPage() {
               <p className="text-sm text-slate-500 mb-3">Prévisualisation:</p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                 {logoPreview && (
-                  <img 
-                    src={logoPreview} 
-                    alt="Logo" 
+                  <img
+                    src={logoPreview}
+                    alt="Logo"
                     className="object-contain"
                     style={{ width: `${Math.min(logoSize * 0.5, 48)}px`, height: `${Math.min(logoSize * 0.5, 48)}px` }}
                   />
                 )}
                 <div className="flex gap-2 flex-wrap w-full">
-                  <div 
+                  <div
                     className="px-4 py-2 rounded text-white font-medium text-sm"
                     style={{ backgroundColor: formData.couleur_primaire }}
                   >
                     Primaire
                   </div>
-                  <div 
+                  <div
                     className="px-4 py-2 rounded text-white font-medium text-sm"
                     style={{ backgroundColor: formData.couleur_secondaire }}
                   >
                     Secondaire
                   </div>
-                  <div 
+                  <div
                     className="px-4 py-2 rounded text-white font-medium text-sm"
                     style={{ backgroundColor: formData.couleur_accent }}
                   >
@@ -813,7 +866,7 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Titre */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -828,7 +881,7 @@ export default function SettingsPage() {
                          focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             {/* Message formulaire */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -852,7 +905,7 @@ export default function SettingsPage() {
               <Mail className="w-5 h-5" />
               Configuration SMTP
             </h2>
-            
+
             <div className="space-y-4">
               {/* Toggle SMTP personnalisé */}
               <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -867,12 +920,12 @@ export default function SettingsPage() {
                   Utiliser un serveur SMTP personnalisé
                 </label>
               </div>
-              
+
               <p className="text-sm text-slate-600">
-                Par défaut, les emails sont envoyés depuis notre serveur. 
+                Par défaut, les emails sont envoyés depuis notre serveur.
                 Activez cette option pour envoyer les emails depuis votre propre serveur SMTP.
               </p>
-              
+
               {formData.use_custom_smtp && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 sm:p-4 bg-slate-50 rounded-lg border">
                   <div className="sm:col-span-2">
@@ -883,7 +936,7 @@ export default function SettingsPage() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Serveur SMTP *
@@ -898,7 +951,7 @@ export default function SettingsPage() {
                                focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Port *
@@ -913,7 +966,7 @@ export default function SettingsPage() {
                                focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Nom d&apos;utilisateur *
@@ -928,7 +981,7 @@ export default function SettingsPage() {
                                focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
                       Mot de passe *
@@ -952,7 +1005,7 @@ export default function SettingsPage() {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="sm:col-span-2">
                     <label className="flex items-center gap-2 text-sm">
                       <input
@@ -1003,7 +1056,7 @@ export default function SettingsPage() {
               <p className="text-red-600 text-sm">{submitError}</p>
             </div>
           )}
-          
+
           {saved && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex items-center gap-2">
