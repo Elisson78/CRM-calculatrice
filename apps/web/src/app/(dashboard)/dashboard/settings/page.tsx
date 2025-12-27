@@ -64,8 +64,46 @@ export default function SettingsPage() {
   const [entreprise, setEntreprise] = useState<Entreprise | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testingSmtp, setTestingSmtp] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // ... (rest of the state)
+
+  const handleTestSmtp = async () => {
+    if (!formData.smtp_host || !formData.smtp_user || !formData.smtp_password) {
+      alert('Veuillez remplir les informations SMTP avant de tester.');
+      return;
+    }
+
+    setTestingSmtp(true);
+    try {
+      const response = await fetch('/api/test-smtp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host: formData.smtp_host,
+          port: formData.smtp_port,
+          user: formData.smtp_user,
+          pass: formData.smtp_password,
+          secure: formData.smtp_secure
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || 'Connexion SMTP réussie !');
+      } else {
+        alert(`Erreur: ${data.details || data.error || 'Échec de connexion'}`);
+      }
+    } catch (error) {
+      console.error('Erreur test SMTP:', error);
+      alert('Erreur lors du test de connexion');
+    } finally {
+      setTestingSmtp(false);
+    }
+  };
   const [baseUrl, setBaseUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -929,11 +967,28 @@ export default function SettingsPage() {
               {formData.use_custom_smtp && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 sm:p-4 bg-slate-50 rounded-lg border">
                   <div className="sm:col-span-2">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Shield className="w-4 h-4 text-amber-500" />
-                      <span className="text-sm font-medium text-amber-700">
-                        Configuration sécurisée
-                      </span>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-amber-500" />
+                        <span className="text-sm font-medium text-amber-700">
+                          Configuration sécurisée
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleTestSmtp}
+                        disabled={testingSmtp || !formData.use_custom_smtp}
+                        className="px-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 
+                                 transition-colors flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {testingSmtp ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Zap className="w-3 h-3 text-amber-500" />
+                        )}
+                        Tester la connexion
+                      </button>
                     </div>
                   </div>
 
