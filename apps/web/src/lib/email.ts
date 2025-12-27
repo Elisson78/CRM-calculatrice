@@ -314,7 +314,7 @@ export async function sendDevisEmails(data: DevisEmailData): Promise<{
 
       // Email à l'entreprise
       await transporter.sendMail({
-        from: `"Moovelabs CRM" <${fromEmail}>`,
+        from: `"${data.entreprise.nom}" <${fromEmail}>`,
         to: entrepriseDestEmail,
         cc: data.entreprise.additionalEmails,
         subject: `🔔 Nouvelle demande de devis - ${data.clientNom} (${data.volumeTotal.toFixed(1)} m³)`,
