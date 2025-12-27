@@ -266,7 +266,7 @@ export default function DevisDetailPage() {
                 <div className="text-sm text-slate-600">{devis.nombre_meubles} meubles • {devis.poids_total_kg} kg</div>
                 {devis.montant_estime && (
                   <div className="text-lg font-bold text-green-600 mt-1">
-                    {devis.montant_estime.toFixed(2)} {devis.devise || 'EUR'}
+                    {Number(devis.montant_estime).toFixed(2)} {devis.devise || 'EUR'}
                   </div>
                 )}
               </div>
@@ -469,7 +469,7 @@ export default function DevisDetailPage() {
                   <div className="text-center p-3 bg-green-500/20 rounded-lg border border-green-400/30">
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <Euro className="w-4 h-4" />
-                      <p className="text-2xl font-bold">{devis.montant_estime.toFixed(2)}</p>
+                      <p className="text-2xl font-bold">{Number(devis.montant_estime).toFixed(2)}</p>
                       <span className="text-sm text-white/80">{devis.devise || 'EUR'}</span>
                     </div>
                     <p className="text-xs text-white/80">Montant du devis</p>
@@ -635,7 +635,7 @@ export default function DevisDetailPage() {
                     <p className="text-sm font-medium text-slate-500 mb-1">Montant estimé</p>
                     {devis.montant_estime ? (
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold text-slate-800">{devis.montant_estime.toFixed(2)}</span>
+                        <span className="text-2xl font-bold text-slate-800">{Number(devis.montant_estime).toFixed(2)}</span>
                         <span className="text-sm font-medium text-slate-600">{devis.devise || 'EUR'}</span>
                       </div>
                     ) : (
