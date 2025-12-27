@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  FileText, 
-  Eye, 
-  Clock, 
-  CheckCircle, 
+import {
+  FileText,
+  Eye,
+  Clock,
+  CheckCircle,
   XCircle,
   Loader2,
   Search,
@@ -121,9 +121,9 @@ export default function DevisPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ statut: newStatut }),
       });
-      
+
       if (response.ok) {
-        setDevis(devis.map(d => 
+        setDevis(devis.map(d =>
           d.id === devisId ? { ...d, statut: newStatut } : d
         ));
       }
@@ -144,14 +144,14 @@ export default function DevisPage() {
 
   const getSortIcon = (field: keyof Devis) => {
     if (sortField !== field) return <ArrowUpDown className="w-3 h-3 text-slate-400" />;
-    return sortDirection === 'asc' ? 
-      <ArrowUp className="w-3 h-3 text-primary-600" /> : 
+    return sortDirection === 'asc' ?
+      <ArrowUp className="w-3 h-3 text-primary-600" /> :
       <ArrowDown className="w-3 h-3 text-primary-600" />;
   };
 
   const handleSelectDevis = (devisId: string) => {
-    setSelectedDevis(prev => 
-      prev.includes(devisId) 
+    setSelectedDevis(prev =>
+      prev.includes(devisId)
         ? prev.filter(id => id !== devisId)
         : [...prev, devisId]
     );
@@ -183,7 +183,7 @@ export default function DevisPage() {
         d.montant_estime ? `${d.montant_estime} ${d.devise}` : ''
       ].join(','))
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -196,7 +196,7 @@ export default function DevisPage() {
   };
 
   let filteredDevis = devis.filter(d => {
-    const matchSearch = 
+    const matchSearch =
       d.client_nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       d.client_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       d.numero?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -209,15 +209,15 @@ export default function DevisPage() {
     filteredDevis = [...filteredDevis].sort((a, b) => {
       let aVal = a[sortField];
       let bVal = b[sortField];
-      
+
       // Handle null/undefined values
       if (aVal === null || aVal === undefined) aVal = '';
       if (bVal === null || bVal === undefined) bVal = '';
-      
+
       // Convert to string for comparison if needed
       if (typeof aVal === 'string') aVal = aVal.toLowerCase();
       if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-      
+
       if (sortDirection === 'asc') {
         return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
       } else {
@@ -286,7 +286,7 @@ export default function DevisPage() {
                        focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
-          
+
           <select
             value={filterStatut}
             onChange={(e) => setFilterStatut(e.target.value)}
@@ -298,7 +298,7 @@ export default function DevisPage() {
               <option key={key} value={key}>{label}</option>
             ))}
           </select>
-          
+
           <select
             value={itemsPerPage}
             onChange={(e) => {
@@ -325,7 +325,7 @@ export default function DevisPage() {
               </span>
             )}
           </div>
-          
+
           {selectedDevis.length > 0 && (
             <button
               onClick={exportSelectedDevis}
@@ -348,32 +348,32 @@ export default function DevisPage() {
                 className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
               />
             </div>
-            <button 
-              onClick={() => handleSort('numero')} 
+            <button
+              onClick={() => handleSort('numero')}
               className="col-span-2 flex items-center gap-1 text-left hover:text-primary-600"
             >
               Numéro {getSortIcon('numero')}
             </button>
-            <button 
-              onClick={() => handleSort('client_nom')} 
+            <button
+              onClick={() => handleSort('client_nom')}
               className="col-span-2 flex items-center gap-1 text-left hover:text-primary-600"
             >
               Client {getSortIcon('client_nom')}
             </button>
-            <button 
-              onClick={() => handleSort('volume_total_m3')} 
+            <button
+              onClick={() => handleSort('volume_total_m3')}
               className="col-span-1 flex items-center gap-1 text-left hover:text-primary-600"
             >
               Volume {getSortIcon('volume_total_m3')}
             </button>
-            <button 
-              onClick={() => handleSort('statut')} 
+            <button
+              onClick={() => handleSort('statut')}
               className="col-span-2 flex items-center gap-1 text-left hover:text-primary-600"
             >
               Statut {getSortIcon('statut')}
             </button>
-            <button 
-              onClick={() => handleSort('created_at')} 
+            <button
+              onClick={() => handleSort('created_at')}
               className="col-span-2 flex items-center gap-1 text-left hover:text-primary-600"
             >
               Date {getSortIcon('created_at')}
@@ -397,7 +397,7 @@ export default function DevisPage() {
             <div className="hidden lg:block bg-white border-x border-slate-200">
               {paginatedDevis.map((d) => {
                 const statut = statutColors[d.statut] || statutColors.nouveau;
-                
+
                 return (
                   <div key={d.id} className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-slate-100 hover:bg-slate-50 items-center">
                     <div className="col-span-1 flex items-center justify-center">
@@ -448,153 +448,153 @@ export default function DevisPage() {
                 );
               })}
             </div>
-            
+
             {/* Mobile card view */}
             <div className="lg:hidden space-y-4">
               {paginatedDevis.map((d) => {
-              const statut = statutColors[d.statut] || statutColors.nouveau;
-              
-              return (
-                <div key={d.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                  <div className="p-4 sm:p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                      {/* Infos principales */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="text-sm font-mono text-slate-500">{d.numero}</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statut.bg} ${statut.text}`}>
-                            {statut.label}
-                          </span>
-                        </div>
-                        
-                        <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                          {d.client_nom || 'Client sans nom'}
-                        </h3>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-600">
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-slate-400" />
-                            {d.client_email}
+                const statut = statutColors[d.statut] || statutColors.nouveau;
+
+                return (
+                  <div key={d.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="p-4 sm:p-6">
+                      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                        {/* Infos principales */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-sm font-mono text-slate-500">{d.numero}</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${statut.bg} ${statut.text}`}>
+                              {statut.label}
+                            </span>
                           </div>
-                          {d.client_telephone && (
+
+                          <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                            {d.client_nom || 'Client sans nom'}
+                          </h3>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-600">
                             <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4 text-slate-400" />
-                              {d.client_telephone}
+                              <Mail className="w-4 h-4 text-slate-400" />
+                              {d.client_email}
+                            </div>
+                            {d.client_telephone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-slate-400" />
+                                {d.client_telephone}
+                              </div>
+                            )}
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-4 h-4 text-slate-400 mt-0.5" />
+                              <span className="truncate">{d.adresse_depart}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <MapPin className="w-4 h-4 text-green-500 mt-0.5" />
+                              <span className="truncate">{d.adresse_arrivee}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Stats et actions */}
+                        <div className="flex flex-col sm:items-end gap-3">
+                          <div className="flex items-center gap-4 sm:gap-6">
+                            <div className="text-center">
+                              <p className="text-xl sm:text-2xl font-bold text-primary-600">{parseFloat(String(d.volume_total_m3 || 0)).toFixed(1)}</p>
+                              <p className="text-xs text-slate-500">m³</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-xl sm:text-2xl font-bold text-slate-700">{d.nombre_meubles}</p>
+                              <p className="text-xs text-slate-500">meubles</p>
+                            </div>
+                          </div>
+                          {d.montant_estime && (
+                            <div className="text-center p-2 bg-green-50 rounded-lg border border-green-200">
+                              <div className="flex items-center gap-1">
+                                <Euro className="w-3 h-3 text-green-600" />
+                                <p className="text-lg font-bold text-green-700">{Number(d.montant_estime).toFixed(2)}</p>
+                                <span className="text-xs text-green-600">{d.devise || 'EUR'}</span>
+                              </div>
                             </div>
                           )}
-                          <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-slate-400 mt-0.5" />
-                            <span className="truncate">{d.adresse_depart}</span>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span className="truncate">{d.adresse_arrivee}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Stats et actions */}
-                      <div className="flex flex-col sm:items-end gap-3">
-                        <div className="flex items-center gap-4 sm:gap-6">
-                          <div className="text-center">
-                            <p className="text-xl sm:text-2xl font-bold text-primary-600">{parseFloat(String(d.volume_total_m3 || 0)).toFixed(1)}</p>
-                            <p className="text-xs text-slate-500">m³</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xl sm:text-2xl font-bold text-slate-700">{d.nombre_meubles}</p>
-                            <p className="text-xs text-slate-500">meubles</p>
-                          </div>
-                        </div>
-                        {d.montant_estime && (
-                          <div className="text-center p-2 bg-green-50 rounded-lg border border-green-200">
-                            <div className="flex items-center gap-1">
-                              <Euro className="w-3 h-3 text-green-600" />
-                              <p className="text-lg font-bold text-green-700">{d.montant_estime.toFixed(2)}</p>
-                              <span className="text-xs text-green-600">{d.devise || 'EUR'}</span>
+                          {d.nombre_demenageurs && (
+                            <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3 text-blue-600" />
+                                <p className="text-sm font-semibold text-blue-700">{d.nombre_demenageurs}</p>
+                                <span className="text-xs text-blue-600">déménageur{d.nombre_demenageurs > 1 ? 's' : ''}</span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        {d.nombre_demenageurs && (
-                          <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="flex items-center gap-1">
-                              <Users className="w-3 h-3 text-blue-600" />
-                              <p className="text-sm font-semibold text-blue-700">{d.nombre_demenageurs}</p>
-                              <span className="text-xs text-blue-600">déménageur{d.nombre_demenageurs > 1 ? 's' : ''}</span>
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <Clock className="w-3 h-3" />
-                          {formatDate(d.created_at)}
-                        </div>
-                        
-                        {d.date_demenagement && (
+                          )}
+
                           <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <Calendar className="w-3 h-3" />
-                            Prévu: {new Date(d.date_demenagement).toLocaleDateString('fr-FR')}
+                            <Clock className="w-3 h-3" />
+                            {formatDate(d.created_at)}
                           </div>
-                        )}
+
+                          {d.date_demenagement && (
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <Calendar className="w-3 h-3" />
+                              Prévu: {new Date(d.date_demenagement).toLocaleDateString('fr-FR')}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Actions */}
-                  <div className="bg-slate-50 px-4 sm:px-6 py-3 flex flex-wrap gap-2 border-t border-slate-200">
-                    <Link
-                      href={`/dashboard/devis/${d.id}`}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Voir détails
-                    </Link>
-                    
-                    {d.statut === 'nouveau' && (
-                      <button
-                        onClick={() => updateStatut(d.id, 'vu')}
-                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+
+                    {/* Actions */}
+                    <div className="bg-slate-50 px-4 sm:px-6 py-3 flex flex-wrap gap-2 border-t border-slate-200">
+                      <Link
+                        href={`/dashboard/devis/${d.id}`}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                       >
                         <Eye className="w-4 h-4" />
-                        Marquer vu
-                      </button>
-                    )}
-                    
-                    {(d.statut === 'nouveau' || d.statut === 'vu') && (
-                      <button
-                        onClick={() => updateStatut(d.id, 'en_traitement')}
-                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-                      >
-                        <Clock className="w-4 h-4" />
-                        En traitement
-                      </button>
-                    )}
-                    
-                    {d.statut !== 'accepte' && d.statut !== 'refuse' && d.statut !== 'termine' && (
-                      <>
+                        Voir détails
+                      </Link>
+
+                      {d.statut === 'nouveau' && (
                         <button
-                          onClick={() => updateStatut(d.id, 'accepte')}
-                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600"
+                          onClick={() => updateStatut(d.id, 'vu')}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
                         >
-                          <CheckCircle className="w-4 h-4" />
-                          Accepter
+                          <Eye className="w-4 h-4" />
+                          Marquer vu
                         </button>
+                      )}
+
+                      {(d.statut === 'nouveau' || d.statut === 'vu') && (
                         <button
-                          onClick={() => updateStatut(d.id, 'refuse')}
-                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+                          onClick={() => updateStatut(d.id, 'en_traitement')}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600"
                         >
-                          <XCircle className="w-4 h-4" />
-                          Refuser
+                          <Clock className="w-4 h-4" />
+                          En traitement
                         </button>
-                      </>
-                    )}
+                      )}
+
+                      {d.statut !== 'accepte' && d.statut !== 'refuse' && d.statut !== 'termine' && (
+                        <>
+                          <button
+                            onClick={() => updateStatut(d.id, 'accepte')}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            Accepter
+                          </button>
+                          <button
+                            onClick={() => updateStatut(d.id, 'refuse')}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Refuser
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
+                );
               })}
             </div>
           </div>
         )}
-        
+
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="bg-white rounded-b-xl border-x border-b border-slate-200 lg:border-t-0 border-t px-6 py-4">
@@ -602,7 +602,7 @@ export default function DevisPage() {
               <div className="text-sm text-slate-600">
                 Page {currentPage} sur {totalPages}
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => goToPage(currentPage - 1)}
@@ -612,7 +612,7 @@ export default function DevisPage() {
                   <ChevronLeft className="w-4 h-4" />
                   Précédent
                 </button>
-                
+
                 {/* Page numbers */}
                 <div className="flex gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -626,23 +626,22 @@ export default function DevisPage() {
                     } else {
                       page = currentPage - 2 + i;
                     }
-                    
+
                     return (
                       <button
                         key={page}
                         onClick={() => goToPage(page)}
-                        className={`w-8 h-8 text-sm rounded-lg ${
-                          currentPage === page
+                        className={`w-8 h-8 text-sm rounded-lg ${currentPage === page
                             ? 'bg-primary-600 text-white'
                             : 'border border-slate-300 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         {page}
                       </button>
                     );
                   })}
                 </div>
-                
+
                 <button
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
