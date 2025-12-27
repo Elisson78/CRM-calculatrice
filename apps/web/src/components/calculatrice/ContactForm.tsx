@@ -282,7 +282,7 @@ export function ContactForm() {
                               render={({ field: { value: floorValue, onChange: onFloorChange } }) => (
                                 <ElevatorControl
                                   label="Ascenseur au départ ?"
-                                  hasElevator={value}
+                                  hasElevator={value || false}
                                   onElevatorChange={onChange}
                                   floor={floorValue || 0}
                                   onFloorChange={onFloorChange}
@@ -320,7 +320,7 @@ export function ContactForm() {
                               render={({ field: { value: floorValue, onChange: onFloorChange } }) => (
                                 <ElevatorControl
                                   label="Ascenseur à l'arrivée ?"
-                                  hasElevator={value}
+                                  hasElevator={value || false}
                                   onElevatorChange={onChange}
                                   floor={floorValue || 0}
                                   onFloorChange={onFloorChange}
