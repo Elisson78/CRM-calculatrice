@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Loader2, CheckCircle } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCalculatriceStore } from '@/stores/calculatriceStore';
 import { formatVolume } from '@/lib/utils';
+import { ElevatorControl } from './ElevatorControl';
 
 // Schéma de validation
 const formSchema = z.object({
@@ -18,8 +20,10 @@ const formSchema = z.object({
     .regex(/^[\+]?[0-9\s\-\(\)]{8,20}$/, 'Format de téléphone invalide'),
   adresse_depart: z.string().min(5, 'Adresse de départ requise'),
   avec_ascenseur_depart: z.boolean(),
+  etage_depart: z.number().min(0).max(12).optional(),
   adresse_arrivee: z.string().min(5, "Adresse d'arrivée requise"),
   avec_ascenseur_arrivee: z.boolean(),
+  etage_arrivee: z.number().min(0).max(12).optional(),
   date_demenagement: z.string().optional(),
   observations: z.string().optional(),
 });
@@ -27,51 +31,62 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function ContactForm() {
-  const { 
-    formulaireVisible, 
-    setFormulaireVisible, 
-    entreprise, 
+  const {
+    formulaireVisible,
+    setFormulaireVisible,
+    entreprise,
     getSelectionsList,
     volumeTotal,
     isSubmitting,
     setIsSubmitting,
     resetSelections,
   } = useCalculatriceStore();
-  
+
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  
+
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       avec_ascenseur_depart: false,
       avec_ascenseur_arrivee: false,
+      etage_depart: 0,
+      etage_arrivee: 0,
     },
   });
-  
+
   const primaryColor = entreprise?.couleur_primaire || '#1e3a5f';
   const secondaryColor = entreprise?.couleur_secondaire || '#2563eb';
-  
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     setSubmitError(null);
-    
+
     try {
       const selections = getSelectionsList();
-      
+
+      // Formater les observations pour inclure les étages
+      const etageDepartStr = data.etage_depart !== undefined ? `Étage départ: ${data.etage_depart}` : '';
+      const etageArriveeStr = data.etage_arrivee !== undefined ? `Étage arrivée: ${data.etage_arrivee}` : '';
+      const infoEtages = [etageDepartStr, etageArriveeStr].filter(Boolean).join('\n');
+
+      const finalObservations = [infoEtages, data.observations].filter(Boolean).join('\n\n');
+
       const payload = {
         entreprise_id: entreprise?.id,
         entreprise_slug: entreprise?.slug,
         ...data,
+        observations: finalObservations,
         volume_total_m3: volumeTotal,
         meubles: selections,
       };
-      
+
       const response = await fetch('/api/devis', {
         method: 'POST',
         headers: {
@@ -79,13 +94,13 @@ export function ContactForm() {
         },
         body: JSON.stringify(payload),
       });
-      
+
       if (!response.ok) {
         throw new Error('Erreur lors de l\'envoi du devis');
       }
-      
+
       setSubmitSuccess(true);
-      
+
       // Réinitialiser après 3 secondes
       setTimeout(() => {
         setFormulaireVisible(false);
@@ -93,7 +108,7 @@ export function ContactForm() {
         reset();
         resetSelections();
       }, 3000);
-      
+
     } catch (error) {
       console.error('Erreur:', error);
       setSubmitError('Une erreur est survenue. Veuillez réessayer.');
@@ -101,14 +116,14 @@ export function ContactForm() {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleClose = () => {
     if (!isSubmitting) {
       setFormulaireVisible(false);
       setSubmitError(null);
     }
   };
-  
+
   return (
     <AnimatePresence>
       {formulaireVisible && (
@@ -127,7 +142,7 @@ export function ContactForm() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div 
+            <div
               className="sticky top-0 flex items-center justify-between p-4 border-b bg-white z-10"
               style={{ borderBottomColor: primaryColor }}
             >
@@ -147,7 +162,7 @@ export function ContactForm() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             {/* Contenu */}
             {submitSuccess ? (
               <motion.div
@@ -171,7 +186,7 @@ export function ContactForm() {
                     <h3 className="font-semibold text-lg" style={{ color: primaryColor }}>
                       Vous concernant
                     </h3>
-                    
+
                     {/* Nom entreprise (readonly) */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -184,7 +199,7 @@ export function ContactForm() {
                         className="input bg-slate-100"
                       />
                     </div>
-                    
+
                     {/* Nom */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -200,7 +215,7 @@ export function ContactForm() {
                         <p className="text-red-500 text-sm mt-1">{errors.nom.message}</p>
                       )}
                     </div>
-                    
+
                     {/* Email */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -216,7 +231,7 @@ export function ContactForm() {
                         <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
                       )}
                     </div>
-                    
+
                     {/* Téléphone */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -234,13 +249,13 @@ export function ContactForm() {
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Colonne 2: Déménagement */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-lg" style={{ color: primaryColor }}>
                       Votre déménagement
                     </h3>
-                    
+
                     {/* Adresse de départ */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -255,18 +270,30 @@ export function ContactForm() {
                       {errors.adresse_depart && (
                         <p className="text-red-500 text-sm mt-1">{errors.adresse_depart.message}</p>
                       )}
-                      <div className="flex gap-4 mt-2">
-                        <label className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            {...register('avec_ascenseur_depart')}
-                            className="rounded"
-                          />
-                          Avec ascenseur départ
-                        </label>
+
+                      <div className="mt-4">
+                        <Controller
+                          name="avec_ascenseur_depart"
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <Controller
+                              name="etage_depart"
+                              control={control}
+                              render={({ field: { value: floorValue, onChange: onFloorChange } }) => (
+                                <ElevatorControl
+                                  label="Ascenseur au départ ?"
+                                  hasElevator={value}
+                                  onElevatorChange={onChange}
+                                  floor={floorValue || 0}
+                                  onFloorChange={onFloorChange}
+                                />
+                              )}
+                            />
+                          )}
+                        />
                       </div>
                     </div>
-                    
+
                     {/* Adresse d'arrivée */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -281,18 +308,30 @@ export function ContactForm() {
                       {errors.adresse_arrivee && (
                         <p className="text-red-500 text-sm mt-1">{errors.adresse_arrivee.message}</p>
                       )}
-                      <div className="flex gap-4 mt-2">
-                        <label className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            {...register('avec_ascenseur_arrivee')}
-                            className="rounded"
-                          />
-                          Avec ascenseur arrivée
-                        </label>
+
+                      <div className="mt-4">
+                        <Controller
+                          name="avec_ascenseur_arrivee"
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <Controller
+                              name="etage_arrivee"
+                              control={control}
+                              render={({ field: { value: floorValue, onChange: onFloorChange } }) => (
+                                <ElevatorControl
+                                  label="Ascenseur à l'arrivée ?"
+                                  hasElevator={value}
+                                  onElevatorChange={onChange}
+                                  floor={floorValue || 0}
+                                  onFloorChange={onFloorChange}
+                                />
+                              )}
+                            />
+                          )}
+                        />
                       </div>
                     </div>
-                    
+
                     {/* Date de déménagement */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -304,7 +343,7 @@ export function ContactForm() {
                         className="input"
                       />
                     </div>
-                    
+
                     {/* Observations */}
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -319,18 +358,18 @@ export function ContactForm() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Message RGPD */}
                 <p className="text-sm text-slate-500 mt-6 text-center">
-                  {entreprise?.message_formulaire || 
+                  {entreprise?.message_formulaire ||
                     "Ces informations ne serviront qu'à l'édition de votre devis et ne seront JAMAIS transmises ou vendu à un tiers."}
                 </p>
-                
+
                 {/* Erreur */}
                 {submitError && (
                   <p className="text-red-500 text-center mt-4">{submitError}</p>
                 )}
-                
+
                 {/* Bouton submit */}
                 <div className="mt-6 flex justify-center">
                   <button
