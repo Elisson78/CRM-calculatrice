@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Loader2,
   MapPin,
   Phone,
@@ -97,7 +97,7 @@ export default function DevisDetailPage() {
           nombre_demenageurs: data.devis.nombre_demenageurs?.toString() || '',
           devise: data.devis.devise || 'EUR',
           observations: data.devis.observations || '',
-          date_demenagement: data.devis.date_demenagement || '',
+          date_demenagement: data.devis.date_demenagement ? new Date(data.devis.date_demenagement).toISOString().split('T')[0] : '',
         });
       }
     } catch (error) {
@@ -114,7 +114,7 @@ export default function DevisDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ statut: newStatut }),
       });
-      
+
       if (response.ok && devis) {
         setDevis({ ...devis, statut: newStatut });
       }
@@ -137,7 +137,7 @@ export default function DevisDetailPage() {
           date_demenagement: editForm.date_demenagement || null,
         }),
       });
-      
+
       if (response.ok && devis) {
         setDevis({
           ...devis,
@@ -241,7 +241,7 @@ export default function DevisDetailPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Layout pour impression - en une colonne */}
         <div className="print:block hidden">
           {/* En-tête de devis pour impression */}
@@ -268,7 +268,7 @@ export default function DevisDetailPage() {
                 )}
               </div>
             </div>
-            
+
             {/* Client et adresses en ligne */}
             <div className="grid grid-cols-3 gap-4">
               <div>
@@ -279,7 +279,7 @@ export default function DevisDetailPage() {
                   <p className="text-sm text-slate-600">{devis.client_telephone}</p>
                 )}
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-semibold text-red-600 mb-2">Départ</h3>
                 <p className="text-sm text-slate-800">{devis.adresse_depart}</p>
@@ -287,7 +287,7 @@ export default function DevisDetailPage() {
                   <p className="text-xs text-slate-500">Avec ascenseur</p>
                 )}
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-semibold text-green-600 mb-2">Arrivée</h3>
                 <p className="text-sm text-slate-800">{devis.adresse_arrivee}</p>
@@ -296,7 +296,7 @@ export default function DevisDetailPage() {
                 )}
               </div>
             </div>
-            
+
             {devis.observations && (
               <div className="mt-4 p-3 bg-slate-50 rounded border">
                 <p className="text-xs font-medium text-slate-600 mb-1">Observations:</p>
@@ -416,7 +416,7 @@ export default function DevisDetailPage() {
                 <Package className="w-5 h-5" />
                 Meubles ({devis.nombre_meubles})
               </h2>
-              
+
               {Object.entries(meublesParCategorie).map(([categorie, items]) => (
                 <div key={categorie} className="mb-6 last:mb-0">
                   <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">
@@ -484,138 +484,174 @@ export default function DevisDetailPage() {
               </div>
             </div>
 
-            {/* Formulaire d'édition */}
-            {isEditing ? (
-              <div className="bg-white rounded-xl border border-slate-200 p-6">
-                <h2 className="text-lg font-semibold text-slate-800 mb-4">Éditer le devis</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Montant du devis ({editForm.devise})
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={editForm.montant_estime}
-                      onChange={(e) => setEditForm({ ...editForm, montant_estime: e.target.value })}
-                      placeholder="0.00"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Nombre de déménageurs
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={editForm.nombre_demenageurs}
-                      onChange={(e) => setEditForm({ ...editForm, nombre_demenageurs: e.target.value })}
-                      placeholder="0"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Devise
-                    </label>
-                    <select
-                      value={editForm.devise}
-                      onChange={(e) => setEditForm({ ...editForm, devise: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            {/* Modal d'édition */}
+            {isEditing && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                    <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                      <Edit className="w-5 h-5 text-primary-600" />
+                      Édition du devis
+                    </h2>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="p-2 hover:bg-slate-100 rounded-full transition-colors"
                     >
-                      <option value="EUR">EUR</option>
-                      <option value="CHF">CHF</option>
-                      <option value="USD">USD</option>
-                    </select>
+                      <X className="w-5 h-5 text-slate-500" />
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Date de déménagement
-                    </label>
-                    <input
-                      type="date"
-                      value={editForm.date_demenagement}
-                      onChange={(e) => setEditForm({ ...editForm, date_demenagement: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
+
+                  <div className="p-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <label className="block text-sm font-semibold text-slate-700">
+                          Montant et Devise
+                        </label>
+                        <div className="flex gap-3">
+                          <div className="relative flex-1">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <span className="text-slate-500 sm:text-sm">
+                                {editForm.devise === 'EUR' ? '€' : editForm.devise === 'USD' ? '$' : 'Fr'}
+                              </span>
+                            </div>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={editForm.montant_estime}
+                              onChange={(e) => setEditForm({ ...editForm, montant_estime: e.target.value })}
+                              placeholder="0.00"
+                              className="w-full pl-8 pr-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                          <select
+                            value={editForm.devise}
+                            onChange={(e) => setEditForm({ ...editForm, devise: e.target.value })}
+                            className="w-24 px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                          >
+                            <option value="EUR">EUR</option>
+                            <option value="CHF">CHF</option>
+                            <option value="USD">USD</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <label className="block text-sm font-semibold text-slate-700">
+                          Logistique
+                        </label>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Nombre de déménageurs</label>
+                          <div className="relative">
+                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              type="number"
+                              min="1"
+                              value={editForm.nombre_demenageurs}
+                              onChange={(e) => setEditForm({ ...editForm, nombre_demenageurs: e.target.value })}
+                              placeholder="Ex: 2"
+                              className="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2 space-y-4">
+                        <label className="block text-sm font-semibold text-slate-700">
+                          Planification
+                        </label>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Date de déménagement</label>
+                          <input
+                            type="date"
+                            value={editForm.date_demenagement}
+                            onChange={(e) => setEditForm({ ...editForm, date_demenagement: e.target.value })}
+                            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="md:col-span-2 space-y-4">
+                        <label className="block text-sm font-semibold text-slate-700">
+                          Notes & Observations
+                        </label>
+                        <textarea
+                          value={editForm.observations}
+                          onChange={(e) => setEditForm({ ...editForm, observations: e.target.value })}
+                          rows={4}
+                          className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          placeholder="Ajoutez des détails importants pour ce devis..."
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      Observations
-                    </label>
-                    <textarea
-                      value={editForm.observations}
-                      onChange={(e) => setEditForm({ ...editForm, observations: e.target.value })}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="Notes supplémentaires..."
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-2">
+
+                  <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-100 bg-slate-50 rounded-b-xl">
+                    <button
+                      onClick={handleCancelEdit}
+                      disabled={saving}
+                      className="px-4 py-2 text-slate-700 font-medium hover:bg-slate-200 rounded-lg transition-colors"
+                    >
+                      Annuler
+                    </button>
                     <button
                       onClick={handleSaveEdit}
                       disabled={saving}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                      className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {saving ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <Save className="w-4 h-4" />
                       )}
-                      Enregistrer
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      disabled={saving}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 disabled:opacity-50"
-                    >
-                      <X className="w-4 h-4" />
-                      Annuler
+                      Enregistrer les modifications
                     </button>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="bg-white rounded-xl border border-slate-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-slate-800">Informations du devis</h2>
+            )}
+
+            {/* Affichage des informations (Lecture seule) */}
+            {!isEditing && (
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <Euro className="w-5 h-5 text-slate-400" />
+                    Détails financiers & logistiques
+                  </h2>
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors"
                   >
                     <Edit className="w-4 h-4" />
-                    Éditer
+                    Modifier
                   </button>
                 </div>
-                <div className="space-y-3">
-                  {devis.montant_estime ? (
-                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-2 text-green-700">
-                        <Euro className="w-4 h-4" />
-                        <span className="text-lg font-bold">{devis.montant_estime.toFixed(2)}</span>
-                        <span className="text-sm">{devis.devise || 'EUR'}</span>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className={`p-4 rounded-xl border ${devis.montant_estime ? 'bg-green-50 border-green-100' : 'bg-slate-50 border-slate-100'}`}>
+                    <p className="text-sm font-medium text-slate-500 mb-1">Montant estimé</p>
+                    {devis.montant_estime ? (
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-slate-800">{devis.montant_estime.toFixed(2)}</span>
+                        <span className="text-sm font-medium text-slate-600">{devis.devise || 'EUR'}</span>
                       </div>
-                      <p className="text-xs text-green-600 mt-1">Montant du devis</p>
-                    </div>
-                  ) : (
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-500 text-sm">
-                      Aucun montant défini
-                    </div>
-                  )}
-                  {devis.nombre_demenageurs ? (
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 text-blue-700">
-                        <Users className="w-4 h-4" />
-                        <span className="text-lg font-bold">{devis.nombre_demenageurs}</span>
-                        <span className="text-sm">déménageur{devis.nombre_demenageurs > 1 ? 's' : ''}</span>
+                    ) : (
+                      <p className="text-slate-400 italic">Non défini</p>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-sm font-medium text-slate-500 mb-1">Équipe</p>
+                    {devis.nombre_demenageurs ? (
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-slate-400" />
+                        <span className="text-lg font-semibold text-slate-800">{devis.nombre_demenageurs}</span>
+                        <span className="text-slate-600">déménageurs</span>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-slate-500 text-sm">
-                      Nombre de déménageurs non défini
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-slate-400 italic">Non défini</p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -633,7 +669,7 @@ export default function DevisDetailPage() {
                     Marquer comme vu
                   </button>
                 )}
-                
+
                 {(devis.statut === 'nouveau' || devis.statut === 'vu') && (
                   <button
                     onClick={() => updateStatut('en_traitement')}
@@ -643,7 +679,7 @@ export default function DevisDetailPage() {
                     Passer en traitement
                   </button>
                 )}
-                
+
                 {devis.statut === 'en_traitement' && (
                   <button
                     onClick={() => updateStatut('devis_envoye')}
@@ -653,7 +689,7 @@ export default function DevisDetailPage() {
                     Devis envoyé
                   </button>
                 )}
-                
+
                 {devis.statut !== 'accepte' && devis.statut !== 'refuse' && devis.statut !== 'termine' && (
                   <>
                     <button
@@ -672,7 +708,7 @@ export default function DevisDetailPage() {
                     </button>
                   </>
                 )}
-                
+
                 {devis.statut === 'accepte' && (
                   <button
                     onClick={() => updateStatut('termine')}
