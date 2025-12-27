@@ -131,7 +131,10 @@ export async function PATCH(
   } catch (error) {
     console.error('Erreur PATCH devis:', error);
     return NextResponse.json(
-      { error: 'Erreur serveur' },
+      {
+        error: error instanceof Error ? error.message : 'Erreur serveur inconnue',
+        details: error
+      },
       { status: 500 }
     );
   }
