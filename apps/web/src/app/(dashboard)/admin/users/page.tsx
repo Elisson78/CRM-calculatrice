@@ -14,8 +14,7 @@ import {
     RefreshCw,
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
 
 interface User {
     id: string;
@@ -200,7 +199,7 @@ export default function AdminUsersPage() {
                                                 {getRoleBadge(user.role)}
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-500 italic">
-                                                {format(new Date(user.created_at), 'dd MMM yyyy', { locale: fr })}
+                                                {new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(user.created_at))}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
