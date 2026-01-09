@@ -29,6 +29,7 @@ interface Entreprise {
   actif: boolean;
   plan: string;
   created_at: string;
+  total_devis?: number;
 }
 
 const statutColors: Record<string, { bg: string; text: string; label: string }> = {
@@ -221,7 +222,14 @@ export default function AdminDashboard() {
                 <div key={ent.id} className="p-4 sm:p-6 flex items-center justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-slate-800 truncate">{ent.nom}</h3>
-                    <p className="text-sm text-slate-500 truncate">{ent.email}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-slate-500 truncate">{ent.email}</p>
+                      {ent.total_devis !== undefined && (
+                        <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">
+                          {ent.total_devis} {ent.total_devis === 1 ? 'devis' : 'devis'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap ${ent.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'

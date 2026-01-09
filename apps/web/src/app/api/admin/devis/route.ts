@@ -24,7 +24,7 @@ export async function GET() {
         COALESCE(d.devise, 'EUR') as devise,
         d.nombre_demenageurs,
         d.created_at,
-        e.nom as entreprise_nom,
+        COALESCE(e.nom, 'Sans entreprise') as entreprise_nom,
         e.slug as entreprise_slug
       FROM devis d
       LEFT JOIN entreprises e ON d.entreprise_id = e.id
