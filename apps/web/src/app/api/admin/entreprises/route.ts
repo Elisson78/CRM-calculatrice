@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, authenticatedQuery } from '@/lib/db';
 
 export async function GET() {
   try {
-    const entreprises = await query(
+    const entreprises = await authenticatedQuery(
       `SELECT 
         e.id, e.nom, e.email, e.slug, e.actif, e.plan, e.created_at,
         (SELECT COUNT(*) FROM devis d WHERE d.entreprise_id = e.id) as total_devis
        FROM entreprises e
        WHERE e.deleted_at IS NULL
-       ORDER BY e.created_at DESC`
+       ORDER BY e.created_at DESC`,
+      [],
+      { role: 'admin' }
     );
 
     return NextResponse.json({ entreprises });

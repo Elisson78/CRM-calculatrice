@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, authenticatedQuery } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 
 export async function GET() {
@@ -13,9 +13,8 @@ export async function GET() {
             );
         }
 
-        // Como é admin, usamos a query direta que ignora o RLS de empresa se necessário,
-        // ou simplesmente buscamos todos os registros.
-        const devis = await query(
+        // Como é admin, usamos a query autenticada que define o contexto para ignorar o RLS
+        const devis = await authenticatedQuery(
             `SELECT 
         d.id, d.numero, d.client_nom, d.client_email, d.client_telephone,
         d.adresse_depart, d.adresse_arrivee, d.volume_total_m3, d.nombre_meubles,
@@ -24,11 +23,13 @@ export async function GET() {
         COALESCE(d.devise, 'EUR') as devise,
         d.nombre_demenageurs,
         d.created_at,
-        COALESCE(e.nom, 'Sans entreprise') as entreprise_nom,
+        COALESCE(e.nom, 'Sans empresa') as entreprise_nom,
         e.slug as entreprise_slug
       FROM devis d
       LEFT JOIN entreprises e ON d.entreprise_id = e.id
-      ORDER BY d.created_at DESC`
+      ORDER BY d.created_at DESC`,
+            [],
+            { role: 'admin' }
         );
 
         return NextResponse.json({ devis });
