@@ -33,10 +33,34 @@ export default function AdminUsersPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
-        fetchUsers();
+        checkAdmin();
     }, []);
+
+    const checkAdmin = async () => {
+        try {
+            const response = await fetch('/api/auth/me');
+            if (!response.ok) {
+                router.push('/login');
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.user.role !== 'admin') {
+                router.push('/dashboard');
+                return;
+            }
+
+            setUser(data.user);
+            fetchUsers();
+        } catch (error) {
+            console.error('Erreur:', error);
+            router.push('/login');
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -45,8 +69,6 @@ export default function AdminUsersPage() {
             if (response.ok) {
                 const data = await response.json();
                 setUsers(data.users);
-            } else if (response.status === 401) {
-                router.push('/login');
             }
         } catch (error) {
             console.error('Erreur loading users:', error);
@@ -113,11 +135,24 @@ export default function AdminUsersPage() {
         }
     };
 
+    if (loading && !user) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+            </div>
+        );
+    }
+
+    if (!user) return null;
+
     return (
-        <DashboardLayout onLogout={async () => {
-            await fetch('/api/auth/logout', { method: 'POST' });
-            router.push('/login');
-        }}>
+        <DashboardLayout
+            user={{ role: user.role, nom: user.nom }}
+            onLogout={async () => {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                router.push('/login');
+            }}
+        >
             <div className="p-6 max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
