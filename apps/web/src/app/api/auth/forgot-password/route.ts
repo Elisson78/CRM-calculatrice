@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { findUserByEmail } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { authenticatedQuery, authenticatedQueryOne } from '@/lib/db';
 import { sendPasswordResetEmail } from '@/lib/email';
 import crypto from 'crypto';
 
@@ -24,9 +24,11 @@ export async function POST(request: Request) {
         const expiry = new Date(Date.now() + 3600000); // 1 heure
 
         // Enregistrer le token dans la base de données
-        await query(
+        // On utilise authenticatedQuery pour satisfaire la politique RLS 'user_write_self'
+        await authenticatedQuery(
             'UPDATE users SET reset_password_token = $1, reset_password_expires = $2 WHERE id = $3',
-            [token, expiry, user.id]
+            [token, expiry, user.id],
+            { userId: user.id, role: user.role }
         );
 
         // Envoyer l'email

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query, queryOne } from '@/lib/db';
+import { query, queryOne, authenticatedQuery } from '@/lib/db';
 import { hashPassword } from '@/lib/auth';
 import type { User } from '@/types/database';
 
@@ -25,9 +25,11 @@ export async function POST(request: Request) {
         const hashedPassword = await hashPassword(password);
 
         // Mettre à jour le mot de passe et effacer le token
-        await query(
+        // On utilise authenticatedQuery pour satisfaire la politique RLS 'user_write_self'
+        await authenticatedQuery(
             'UPDATE users SET password_hash = $1, reset_password_token = NULL, reset_password_expires = NULL WHERE id = $2',
-            [hashedPassword, user.id]
+            [hashedPassword, user.id],
+            { userId: user.id, role: user.role }
         );
 
         return NextResponse.json({ message: 'Votre mot de passe a été réinitialisé avec succès' });
