@@ -7,10 +7,10 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { actif, plan } = body;
-    
+
     await query(
       `UPDATE entreprises SET
         actif = COALESCE($1, actif),
@@ -19,9 +19,9 @@ export async function PATCH(
       WHERE id = $3`,
       [actif, plan, id]
     );
-    
+
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('Erreur admin update entreprise:', error);
     return NextResponse.json(
@@ -37,15 +37,15 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+
     await query(
       `UPDATE entreprises SET deleted_at = NOW() WHERE id = $1`,
       [id]
     );
-    
+
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('Erreur admin delete entreprise:', error);
     return NextResponse.json(

@@ -48,36 +48,29 @@
 }
 
 @layer components {
+
   /* Boutons */
   .btn-primary {
-    @apply bg-primary-800 text-white px-6 py-3 rounded-lg font-medium 
-           hover:bg-primary-700 transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply bg-primary-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
   }
 
   .btn-secondary {
-    @apply bg-secondary-600 text-white px-6 py-3 rounded-lg font-medium 
-           hover:bg-secondary-700 transition-colors duration-200
-           focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+    @apply bg-secondary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-secondary-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
   }
 
   /* Cards */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-slate-200 
-           hover:shadow-md transition-shadow duration-200;
+    @apply bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-200;
   }
 
   /* Inputs */
   .input {
-    @apply w-full px-4 py-3 border border-slate-300 rounded-lg
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-           placeholder:text-slate-400;
+    @apply w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder:text-slate-400;
   }
 
   /* Onglets de catégorie */
   .category-tab {
-    @apply px-6 py-3 font-semibold text-white uppercase tracking-wide
-           transition-all duration-200 cursor-pointer;
+    @apply px-6 py-3 font-semibold text-white uppercase tracking-wide transition-all duration-200 cursor-pointer;
   }
 
   .category-tab.active {
@@ -90,16 +83,12 @@
 
   /* Card de meuble */
   .furniture-card {
-    @apply bg-slate-50 border border-slate-200 rounded-lg p-4
-           flex flex-col items-center gap-3
-           hover:border-primary-300 hover:bg-white
-           transition-all duration-200;
+    @apply bg-slate-50 border border-slate-200 rounded-lg p-4 flex flex-col items-center gap-3 hover:border-primary-300 hover:bg-white transition-all duration-200;
   }
 
   /* Compteur +/- */
   .counter-btn {
-    @apply w-8 h-8 rounded-full flex items-center justify-center
-           transition-all duration-200 font-bold text-lg;
+    @apply w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 font-bold text-lg;
   }
 
   .counter-btn.minus {
@@ -112,8 +101,7 @@
 
   /* Badge volume */
   .volume-badge {
-    @apply inline-flex items-center px-4 py-2 rounded-full
-           bg-primary-800 text-white font-bold text-lg;
+    @apply inline-flex items-center px-4 py-2 rounded-full bg-primary-800 text-white font-bold text-lg;
   }
 }
 
@@ -147,7 +135,7 @@
   }
 
   /* Layout général pour impression */
-  .print\\:hidden {
+  .print\:hidden {
     display: none !important;
   }
 
@@ -159,7 +147,7 @@
   }
 
   /* Grille adaptée pour A4 */
-  .lg\\:grid-cols-3 {
+  .lg\:grid-cols-3 {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
   }
@@ -212,7 +200,7 @@
   }
 
   /* Liste des meubles optimisée */
-  .space-y-2 > * + * {
+  .space-y-2>*+* {
     margin-top: 2px !important;
   }
 
@@ -239,30 +227,32 @@
   }
 
   /* Adresses plus compactes */
-  .grid.md\\:grid-cols-2 {
+  .grid.md\:grid-cols-2 {
     grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
   }
 
   /* Sections colorées plus discrètes en impression */
-  .bg-red-50, .bg-green-50 {
+  .bg-red-50,
+  .bg-green-50 {
     background-color: #f8fafc !important;
     border: 1px solid #cbd5e1 !important;
     padding: 6px !important;
   }
 
   /* Icônes plus petites */
-  .w-4.h-4, .w-5.h-5 {
+  .w-4.h-4,
+  .w-5.h-5 {
     width: 12px !important;
     height: 12px !important;
   }
 
   /* Espacements réduits */
-  .space-y-4 > * + * {
+  .space-y-4>*+* {
     margin-top: 6px !important;
   }
 
-  .space-y-6 > * + * {
+  .space-y-6>*+* {
     margin-top: 8px !important;
   }
 
@@ -293,12 +283,11 @@
   }
 
   /* Force la liste des meubles à être plus dense */
-  .mb-6.last\\:mb-0 {
+  .mb-6.last\:mb-0 {
     margin-bottom: 8px !important;
   }
 
-  .mb-6.last\\:mb-0:last-child {
+  .mb-6.last\:mb-0:last-child {
     margin-bottom: 0 !important;
   }
 }
-

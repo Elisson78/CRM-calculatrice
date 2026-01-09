@@ -31,8 +31,10 @@ interface Devis {
   client_telephone: string;
   adresse_depart: string;
   avec_ascenseur_depart: boolean;
+  etage_depart: number | null;
   adresse_arrivee: string;
   avec_ascenseur_arrivee: boolean;
+  etage_arrivee: number | null;
   volume_total_m3: number;
   poids_total_kg: number;
   nombre_meubles: number;
@@ -42,6 +44,7 @@ interface Devis {
   montant_estime: number | null;
   devise: string;
   nombre_demenageurs: number | null;
+  entreprise_nom?: string;
   created_at: string;
 }
 
@@ -77,6 +80,10 @@ export default function DevisDetailPage() {
     devise: 'EUR',
     observations: '',
     date_demenagement: '',
+    etage_depart: '0',
+    etage_arrivee: '0',
+    avec_ascenseur_depart: false,
+    avec_ascenseur_arrivee: false,
   });
   const [saving, setSaving] = useState(false);
 
@@ -98,6 +105,10 @@ export default function DevisDetailPage() {
           devise: data.devis.devise || 'EUR',
           observations: data.devis.observations || '',
           date_demenagement: data.devis.date_demenagement ? new Date(data.devis.date_demenagement).toISOString().split('T')[0] : '',
+          etage_depart: data.devis.etage_depart?.toString() || '0',
+          etage_arrivee: data.devis.etage_arrivee?.toString() || '0',
+          avec_ascenseur_depart: data.devis.avec_ascenseur_depart ?? false,
+          avec_ascenseur_arrivee: data.devis.avec_ascenseur_arrivee ?? false,
         });
       }
     } catch (error) {
@@ -135,6 +146,10 @@ export default function DevisDetailPage() {
           devise: editForm.devise,
           observations: editForm.observations || null,
           date_demenagement: editForm.date_demenagement || null,
+          etage_depart: editForm.etage_depart || 0,
+          etage_arrivee: editForm.etage_arrivee || 0,
+          avec_ascenseur_depart: editForm.avec_ascenseur_depart,
+          avec_ascenseur_arrivee: editForm.avec_ascenseur_arrivee,
         }),
       });
 
@@ -146,6 +161,10 @@ export default function DevisDetailPage() {
           devise: editForm.devise,
           observations: editForm.observations || null,
           date_demenagement: editForm.date_demenagement || null,
+          etage_depart: parseInt(editForm.etage_depart || '0'),
+          etage_arrivee: parseInt(editForm.etage_arrivee || '0'),
+          avec_ascenseur_depart: editForm.avec_ascenseur_depart,
+          avec_ascenseur_arrivee: editForm.avec_ascenseur_arrivee,
         });
         setIsEditing(false);
       } else {
@@ -168,6 +187,10 @@ export default function DevisDetailPage() {
         devise: devis.devise || 'EUR',
         observations: devis.observations || '',
         date_demenagement: devis.date_demenagement || '',
+        etage_depart: devis.etage_depart?.toString() || '0',
+        etage_arrivee: devis.etage_arrivee?.toString() || '0',
+        avec_ascenseur_depart: devis.avec_ascenseur_depart ?? false,
+        avec_ascenseur_arrivee: devis.avec_ascenseur_arrivee ?? false,
       });
     }
     setIsEditing(false);
@@ -226,7 +249,7 @@ export default function DevisDetailPage() {
                 Retour
               </Link>
               <h1 className="ml-4 text-xl font-bold text-slate-800">
-                Devis {devis.numero}
+                {devis.entreprise_nom ? `${devis.entreprise_nom} - Devis ${devis.numero}` : `Devis ${devis.numero}`}
               </h1>
               <span className={`ml-3 px-3 py-1 rounded-full text-sm font-medium ${statut.bg} ${statut.text}`}>
                 {statut.label}
@@ -249,9 +272,14 @@ export default function DevisDetailPage() {
         <div className="print:block hidden">
           {/* En-tête de devis pour impression */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6 pb-6 border-b border-slate-100">
               <div>
-                <h1 className="text-xl font-bold text-slate-800">Devis {devis.numero}</h1>
+                {devis.entreprise_nom && (
+                  <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-1">
+                    {devis.entreprise_nom}
+                  </h1>
+                )}
+                <h2 className="text-lg font-bold text-slate-700">Devis {devis.numero}</h2>
                 <p className="text-sm text-slate-600">
                   Demande le {formatDate(devis.created_at)}
                   {devis.date_demenagement && (
@@ -263,7 +291,12 @@ export default function DevisDetailPage() {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary-600">{parseFloat(String(devis.volume_total_m3 || 0)).toFixed(1)} m³</div>
-                <div className="text-sm text-slate-600">{devis.nombre_meubles} meubles • {devis.poids_total_kg} kg</div>
+                <div className="text-sm text-slate-600">
+                  {devis.nombre_meubles} meubles • {devis.poids_total_kg} kg
+                  {devis.nombre_demenageurs && (
+                    <span className="ml-1">• {devis.nombre_demenageurs} déménageurs</span>
+                  )}
+                </div>
                 {devis.montant_estime && (
                   <div className="text-lg font-bold text-green-600 mt-1">
                     {Number(devis.montant_estime).toFixed(2)} {devis.devise || 'EUR'}
@@ -286,17 +319,23 @@ export default function DevisDetailPage() {
               <div>
                 <h3 className="text-sm font-semibold text-red-600 mb-2">Départ</h3>
                 <p className="text-sm text-slate-800">{devis.adresse_depart}</p>
-                {devis.avec_ascenseur_depart && (
-                  <p className="text-xs text-slate-500">Avec ascenseur</p>
-                )}
+                <p className="text-xs text-slate-600 mt-1">
+                  Ascenseur: <span className="font-bold">{devis.avec_ascenseur_depart ? 'OUI' : 'NON'}</span>
+                  {devis.etage_depart !== null && devis.etage_depart !== undefined && (
+                    <> • Étage: <span className="font-bold">{devis.etage_depart === 0 ? 'RDC' : devis.etage_depart}</span></>
+                  )}
+                </p>
               </div>
 
               <div>
                 <h3 className="text-sm font-semibold text-green-600 mb-2">Arrivée</h3>
                 <p className="text-sm text-slate-800">{devis.adresse_arrivee}</p>
-                {devis.avec_ascenseur_arrivee && (
-                  <p className="text-xs text-slate-500">Avec ascenseur</p>
-                )}
+                <p className="text-xs text-slate-600 mt-1">
+                  Ascenseur: <span className="font-bold">{devis.avec_ascenseur_arrivee ? 'OUI' : 'NON'}</span>
+                  {devis.etage_arrivee !== null && devis.etage_arrivee !== undefined && (
+                    <> • Étage: <span className="font-bold">{devis.etage_arrivee === 0 ? 'RDC' : devis.etage_arrivee}</span></>
+                  )}
+                </p>
               </div>
             </div>
 
@@ -390,9 +429,12 @@ export default function DevisDetailPage() {
                     Départ
                   </div>
                   <p className="text-slate-800">{devis.adresse_depart}</p>
-                  {devis.avec_ascenseur_depart && (
-                    <p className="text-sm text-slate-500 mt-1">Avec ascenseur</p>
-                  )}
+                  <p className="text-sm text-slate-600 mt-2">
+                    Ascenseur: <span className="font-bold">{devis.avec_ascenseur_depart ? 'Oui' : 'Non'}</span>
+                    {devis.etage_depart !== null && devis.etage_depart !== undefined && (
+                      <span className="ml-3">Étage: <span className="font-bold">{devis.etage_depart === 0 ? 'RDC' : devis.etage_depart}</span></span>
+                    )}
+                  </p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg border border-green-100">
                   <div className="flex items-center gap-2 text-green-600 font-medium mb-2">
@@ -400,9 +442,12 @@ export default function DevisDetailPage() {
                     Arrivée
                   </div>
                   <p className="text-slate-800">{devis.adresse_arrivee}</p>
-                  {devis.avec_ascenseur_arrivee && (
-                    <p className="text-sm text-slate-500 mt-1">Avec ascenseur</p>
-                  )}
+                  <p className="text-sm text-slate-600 mt-2">
+                    Ascenseur: <span className="font-bold">{devis.avec_ascenseur_arrivee ? 'Oui' : 'Non'}</span>
+                    {devis.etage_arrivee !== null && devis.etage_arrivee !== undefined && (
+                      <span className="ml-3">Étage: <span className="font-bold">{devis.etage_arrivee === 0 ? 'RDC' : devis.etage_arrivee}</span></span>
+                    )}
+                  </p>
                 </div>
               </div>
               {devis.observations && (
@@ -540,20 +585,67 @@ export default function DevisDetailPage() {
 
                       <div className="space-y-4">
                         <label className="block text-sm font-semibold text-slate-700">
-                          Logistique
+                          Logistique & Équipe
                         </label>
-                        <div>
-                          <label className="block text-xs text-slate-500 mb-1">Nombre de déménageurs</label>
-                          <div className="relative w-40">
-                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <input
-                              type="number"
-                              min="1"
-                              value={editForm.nombre_demenageurs}
-                              onChange={(e) => setEditForm({ ...editForm, nombre_demenageurs: e.target.value })}
-                              placeholder="Ex: 2"
-                              className="w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs text-slate-500 mb-1">Déménageurs</label>
+                            <div className="relative">
+                              <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                              <input
+                                type="number"
+                                min="1"
+                                value={editForm.nombre_demenageurs}
+                                onChange={(e) => setEditForm({ ...editForm, nombre_demenageurs: e.target.value })}
+                                className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-primary-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                          <div className="space-y-3">
+                            <p className="text-xs font-bold text-slate-400 uppercase">Départ</p>
+                            <div>
+                              <label className="block text-xs text-slate-500 mb-1">Étage</label>
+                              <input
+                                type="number"
+                                value={editForm.etage_depart}
+                                onChange={(e) => setEditForm({ ...editForm, etage_depart: e.target.value })}
+                                className="w-full p-2 border border-slate-300 rounded focus:ring-primary-500"
+                              />
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={editForm.avec_ascenseur_depart}
+                                onChange={(e) => setEditForm({ ...editForm, avec_ascenseur_depart: e.target.checked })}
+                                className="rounded text-primary-600 focus:ring-primary-500"
+                              />
+                              <span className="text-xs text-slate-700 font-medium">Ascenseur</span>
+                            </label>
+                          </div>
+
+                          <div className="space-y-3 border-l border-slate-200 pl-4">
+                            <p className="text-xs font-bold text-slate-400 uppercase">Arrivée</p>
+                            <div>
+                              <label className="block text-xs text-slate-500 mb-1">Étage</label>
+                              <input
+                                type="number"
+                                value={editForm.etage_arrivee}
+                                onChange={(e) => setEditForm({ ...editForm, etage_arrivee: e.target.value })}
+                                className="w-full p-2 border border-slate-300 rounded focus:ring-primary-500"
+                              />
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={editForm.avec_ascenseur_arrivee}
+                                onChange={(e) => setEditForm({ ...editForm, avec_ascenseur_arrivee: e.target.checked })}
+                                className="rounded text-primary-600 focus:ring-primary-500"
+                              />
+                              <span className="text-xs text-slate-700 font-medium">Ascenseur</span>
+                            </label>
                           </div>
                         </div>
                       </div>

@@ -35,6 +35,7 @@ NODE_ENV=development
 | `DB_PASSWORD` | Mot de passe PostgreSQL | ✅ |
 | `NEXT_PUBLIC_APP_URL` | URL publique de l'app | ✅ |
 | `RESEND_API_KEY` | Clé API Resend pour emails | ⚠️ |
+| `JWT_SECRET` | Secret pour les tokens d'authentification | ✅ |
 
 ## Obtenir une clé Resend
 

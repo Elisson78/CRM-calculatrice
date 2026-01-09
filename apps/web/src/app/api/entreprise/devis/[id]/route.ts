@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query, queryOne } from '@/lib/db';
+import { query, authenticatedQuery, authenticatedQueryOne } from '@/lib/db';
+import { getCurrentSession } from '@/lib/auth';
 
 // GET - Récupérer un devis avec ses meubles
 export async function GET(
@@ -7,12 +8,21 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
+    const session = await getCurrentSession();
 
-    // Récupérer le devis
-    const devis = await queryOne(
-      `SELECT * FROM devis WHERE id = $1`,
-      [id]
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
+    // Récupérer le devis com RLS
+    const devis = await authenticatedQueryOne(
+      `SELECT d.*, e.nom as entreprise_nom 
+       FROM devis d 
+       LEFT JOIN entreprises e ON d.entreprise_id = e.id
+       WHERE d.id = $1`,
+      [id],
+      session
     );
 
     if (!devis) {
@@ -22,10 +32,11 @@ export async function GET(
       );
     }
 
-    // Récupérer les meubles du devis
-    const meubles = await query(
+    // Récupérer les meubles du devis (RLS se aplica à tabela devis_meubles que tem política vinculada ao devis)
+    const meubles = await authenticatedQuery(
       `SELECT * FROM devis_meubles WHERE devis_id = $1 ORDER BY meuble_categorie, meuble_nom`,
-      [id]
+      [id],
+      session
     );
 
     return NextResponse.json({ devis, meubles });
@@ -45,11 +56,15 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
+    const session = await getCurrentSession();
 
-    console.log(`🔧 PATCH DEVIS ${id}`);
-    console.log('📦 Body:', body);
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
+    console.log(`🔧 PATCH DEVIS ${id} (Session: ${session.entrepriseId})`);
 
     // Construire dynamiquement la requête UPDATE
     const updates: string[] = [];
@@ -105,6 +120,34 @@ export async function PATCH(
       paramIndex++;
     }
 
+    // Étage départ (si fourni)
+    if (body.etage_depart !== undefined) {
+      updates.push(`etage_depart = $${paramIndex}`);
+      values.push(body.etage_depart === null || body.etage_depart === '' ? 0 : parseInt(body.etage_depart));
+      paramIndex++;
+    }
+
+    // Étage arrivée (si fourni)
+    if (body.etage_arrivee !== undefined) {
+      updates.push(`etage_arrivee = $${paramIndex}`);
+      values.push(body.etage_arrivee === null || body.etage_arrivee === '' ? 0 : parseInt(body.etage_arrivee));
+      paramIndex++;
+    }
+
+    // Ascenseur départ (si fourni)
+    if (body.avec_ascenseur_depart !== undefined) {
+      updates.push(`avec_ascenseur_depart = $${paramIndex}`);
+      values.push(body.avec_ascenseur_depart);
+      paramIndex++;
+    }
+
+    // Ascenseur arrivée (si fourni)
+    if (body.avec_ascenseur_arrivee !== undefined) {
+      updates.push(`avec_ascenseur_arrivee = $${paramIndex}`);
+      values.push(body.avec_ascenseur_arrivee);
+      paramIndex++;
+    }
+
     // Si aucun champ à mettre à jour
     if (updates.length === 0) {
       return NextResponse.json(
@@ -119,12 +162,17 @@ export async function PATCH(
     // Ajouter l'ID à la fin
     values.push(id);
 
-    // Exécuter la mise à jour
-    const queryText = `UPDATE devis SET ${updates.join(', ')} WHERE id = $${paramIndex}`;
-    console.log('📝 Query:', queryText);
-    console.log('❓ Values:', values);
+    // Exécuter la mise à jour com RLS
+    const queryText = `UPDATE devis SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id`;
 
-    await query(queryText, values);
+    const result = await authenticatedQueryOne(queryText, values, session);
+
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Devis non trouvé ou accès non autorisé' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ success: true });
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query, queryOne, pool } from '@/lib/db';
+import { query, queryOne, pool, getAuthenticatedConnection } from '@/lib/db';
 import type { Entreprise, MeubleSelection } from '@/types/database';
 import { sendDevisEmails, type DevisEmailData } from '@/lib/email';
 
@@ -11,8 +11,10 @@ interface DevisPayload {
   telephone: string;
   adresse_depart: string;
   avec_ascenseur_depart: boolean;
+  etage_depart?: number;
   adresse_arrivee: string;
   avec_ascenseur_arrivee: boolean;
+  etage_arrivee?: number;
   date_demenagement?: string;
   observations?: string;
   volume_total_m3: number;
@@ -20,8 +22,6 @@ interface DevisPayload {
 }
 
 export async function POST(request: NextRequest) {
-  const client = await pool.connect();
-
   try {
     const payload: DevisPayload = await request.json();
 
@@ -33,17 +33,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Trouver l'entreprise
+    // Trouver l'entreprise (usamos query normal pois a política entreprise_public_read permite SELECT em empresas ativas)
     let entreprise: Entreprise | null = null;
 
     if (payload.entreprise_id) {
       entreprise = await queryOne<Entreprise>(
-        'SELECT *, email_notification_1, email_notification_2, email_notification_3 FROM entreprises WHERE id = $1',
+        'SELECT *, email_notification_1, email_notification_2, email_notification_3 FROM entreprises WHERE id = $1 AND actif = true',
         [payload.entreprise_id]
       );
     } else if (payload.entreprise_slug) {
       entreprise = await queryOne<Entreprise>(
-        'SELECT *, email_notification_1, email_notification_2, email_notification_3 FROM entreprises WHERE slug = $1',
+        'SELECT *, email_notification_1, email_notification_2, email_notification_3 FROM entreprises WHERE slug = $1 AND actif = true',
         [payload.entreprise_slug]
       );
     }
@@ -55,8 +55,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Démarrer la transaction
-    await client.query('BEGIN');
+    // Obter uma conexão autenticada com o contexto da empresa encontrada
+    // Isso permite que o INSERT passe pelo RLS mesmo sendo uma requisição pública
+    const client = await getAuthenticatedConnection({
+      entrepriseId: entreprise.id,
+      role: 'client' // Definimos um role temporário para a inserção via calculator
+    });
 
     try {
       // Calculer le poids total
@@ -80,8 +84,10 @@ export async function POST(request: NextRequest) {
           client_telephone,
           adresse_depart,
           avec_ascenseur_depart,
+          etage_depart,
           adresse_arrivee,
           avec_ascenseur_arrivee,
+          etage_arrivee,
           date_demenagement,
           observations,
           volume_total_m3,
@@ -90,7 +96,7 @@ export async function POST(request: NextRequest) {
           statut,
           source,
           ip_address
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'nouveau', 'calculatrice', $14)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'nouveau', 'calculatrice', $16)
         RETURNING id, numero`,
         [
           entreprise.id,
@@ -99,8 +105,10 @@ export async function POST(request: NextRequest) {
           payload.telephone,
           payload.adresse_depart,
           payload.avec_ascenseur_depart,
+          payload.etage_depart || 0,
           payload.adresse_arrivee,
           payload.avec_ascenseur_arrivee,
+          payload.etage_arrivee || 0,
           payload.date_demenagement || null,
           payload.observations || null,
           payload.volume_total_m3,
@@ -153,6 +161,8 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
+    } finally {
+      client.release();
     }
 
   } catch (error) {
@@ -161,8 +171,6 @@ export async function POST(request: NextRequest) {
       { error: 'Erreur lors de l\'enregistrement du devis' },
       { status: 500 }
     );
-  } finally {
-    client.release();
   }
 }
 
@@ -179,7 +187,11 @@ async function sendEmails(
       clientEmail: payload.email,
       clientTelephone: payload.telephone,
       adresseDepart: payload.adresse_depart,
+      avecAscenseurDepart: payload.avec_ascenseur_depart,
+      etageDepart: payload.etage_depart,
       adresseArrivee: payload.adresse_arrivee,
+      avecAscenseurArrivee: payload.avec_ascenseur_arrivee,
+      etageArrivee: payload.etage_arrivee,
       dateDemenagement: payload.date_demenagement,
       volumeTotal: payload.volume_total_m3,
       nombreMeubles: payload.meubles.reduce((acc, m) => acc + m.quantite, 0),

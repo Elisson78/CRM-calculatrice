@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Package, 
-  Users, 
+import {
+  LayoutDashboard,
+  Building2,
+  Package,
+  Users,
   FileText,
   Settings,
   LogOut,
@@ -37,6 +37,7 @@ interface SidebarProps {
 const adminNavItems: NavItem[] = [
   { href: '/admin', icon: <LayoutDashboard className="w-5 h-5" />, label: 'Dashboard' },
   { href: '/admin/entreprises', icon: <Building2 className="w-5 h-5" />, label: 'Entreprises' },
+  { href: '/admin/devis', icon: <FileText className="w-5 h-5" />, label: 'Orçamentos' },
   { href: '/admin/meubles', icon: <Package className="w-5 h-5" />, label: 'Catalogue' },
   { href: '/admin/users', icon: <Users className="w-5 h-5" />, label: 'Utilisateurs' },
   { href: '/admin/stripe', icon: <CreditCard className="w-5 h-5" />, label: 'Stripe' },
@@ -61,10 +62,10 @@ export default function Sidebar({ user, onLogout }: SidebarProps) {
 
   // Determinar quais itens de navegação usar
   const navItems = user.role === 'admin' ? adminNavItems : entrepriseNavItems;
-  
+
   // Título da sidebar
-  const sidebarTitle = user.role === 'admin' 
-    ? 'Administration' 
+  const sidebarTitle = user.role === 'admin'
+    ? 'Administration'
     : (user.entreprise?.nom || 'Dashboard');
 
   // Fechar menu mobile quando a rota mudar
@@ -146,21 +147,21 @@ export default function Sidebar({ user, onLogout }: SidebarProps) {
                 <p className="text-xs text-white/60">{sidebarTitle}</p>
               </div>
             </div>
-            
+
             {/* Navigation */}
             <nav className="space-y-2">
               {navItems.map((item) => {
-                const isActive = pathname === item.href || 
+                const isActive = pathname === item.href ||
                   (item.href !== '/dashboard' && item.href !== '/admin' && pathname.startsWith(item.href));
-                
+
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={`
                       flex items-center gap-3 px-4 py-2 rounded-lg transition-colors
-                      ${isActive 
-                        ? 'bg-white/20 text-white' 
+                      ${isActive
+                        ? 'bg-white/20 text-white'
                         : 'text-white/80 hover:bg-white/10 hover:text-white'
                       }
                     `}
@@ -172,7 +173,7 @@ export default function Sidebar({ user, onLogout }: SidebarProps) {
               })}
             </nav>
           </div>
-          
+
           {/* Logout button */}
           <div className="p-6 border-t border-white/10">
             <button
@@ -209,13 +210,13 @@ export default function Sidebar({ user, onLogout }: SidebarProps) {
                 <p className="text-xs text-white/60">{sidebarTitle}</p>
               </div>
             </div>
-            
+
             {/* Navigation */}
             <nav className="space-y-2">
               {navItems.map((item) => {
-                const isActive = pathname === item.href || 
+                const isActive = pathname === item.href ||
                   (item.href !== '/dashboard' && item.href !== '/admin' && pathname.startsWith(item.href));
-                
+
                 return (
                   <Link
                     key={item.href}
@@ -223,8 +224,8 @@ export default function Sidebar({ user, onLogout }: SidebarProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className={`
                       flex items-center gap-3 px-4 py-2 rounded-lg transition-colors
-                      ${isActive 
-                        ? 'bg-white/20 text-white' 
+                      ${isActive
+                        ? 'bg-white/20 text-white'
                         : 'text-white/80 hover:bg-white/10 hover:text-white'
                       }
                     `}
@@ -236,7 +237,7 @@ export default function Sidebar({ user, onLogout }: SidebarProps) {
               })}
             </nav>
           </div>
-          
+
           {/* Logout button */}
           <div className="mt-auto p-6 border-t border-white/10">
             <button

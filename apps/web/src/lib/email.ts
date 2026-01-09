@@ -1,11 +1,16 @@
 import nodemailer from 'nodemailer';
+import { decrypt } from './crypto';
 
 interface DevisEmailData {
   clientNom: string;
   clientEmail: string;
   clientTelephone?: string;
   adresseDepart: string;
+  avecAscenseurDepart: boolean;
+  etageDepart?: number;
   adresseArrivee: string;
+  avecAscenseurArrivee: boolean;
+  etageArrivee?: number;
   dateDemenagement?: string;
   volumeTotal: number;
   nombreMeubles: number;
@@ -62,8 +67,18 @@ function getClientEmailTemplate(data: DevisEmailData): string {
     <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
       <h2 style="margin-top: 0; font-size: 18px; color: #1e3a5f;">📍 Adresses</h2>
       <p style="margin: 5px 0;"><strong>Départ:</strong> ${data.adresseDepart}</p>
-      <p style="margin: 5px 0;"><strong>Arrivée:</strong> ${data.adresseArrivee}</p>
-      ${data.dateDemenagement ? `<p style="margin: 5px 0;"><strong>Date souhaitée:</strong> ${data.dateDemenagement}</p>` : ''}
+      <p style="margin: 5px 0; font-size: 14px; color: #666;">
+        Ascenseur: ${data.avecAscenseurDepart ? 'OUI' : 'NON'} 
+        ${data.etageDepart !== undefined ? `• Étage: ${data.etageDepart}` : ''}
+      </p>
+      
+      <p style="margin: 15px 0 5px 0;"><strong>Arrivée:</strong> ${data.adresseArrivee}</p>
+      <p style="margin: 5px 0; font-size: 14px; color: #666;">
+        Ascenseur: ${data.avecAscenseurArrivee ? 'OUI' : 'NON'} 
+        ${data.etageArrivee !== undefined ? `• Étage: ${data.etageArrivee}` : ''}
+      </p>
+      
+      ${data.dateDemenagement ? `<p style="margin: 15px 0 5px 0;"><strong>Date souhaitée:</strong> ${data.dateDemenagement}</p>` : ''}
     </div>
     
     <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
@@ -163,8 +178,18 @@ function getEntrepriseEmailTemplate(data: DevisEmailData): string {
     <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
       <h2 style="margin-top: 0; font-size: 18px; color: #1e3a5f;">📍 Déménagement</h2>
       <p style="margin: 5px 0;"><strong>Départ:</strong> ${data.adresseDepart}</p>
-      <p style="margin: 5px 0;"><strong>Arrivée:</strong> ${data.adresseArrivee}</p>
-      ${data.dateDemenagement ? `<p style="margin: 5px 0;"><strong>Date souhaitée:</strong> ${data.dateDemenagement}</p>` : ''}
+      <p style="margin: 5px 0; font-size: 14px; color: #666;">
+        Ascenseur: ${data.avecAscenseurDepart ? 'OUI' : 'NON'} 
+        ${data.etageDepart !== undefined ? `• Étage: ${data.etageDepart}` : ''}
+      </p>
+      
+      <p style="margin: 15px 0 5px 0;"><strong>Arrivée:</strong> ${data.adresseArrivee}</p>
+      <p style="margin: 5px 0; font-size: 14px; color: #666;">
+        Ascenseur: ${data.avecAscenseurArrivee ? 'OUI' : 'NON'} 
+        ${data.etageArrivee !== undefined ? `• Étage: ${data.etageArrivee}` : ''}
+      </p>
+      
+      ${data.dateDemenagement ? `<p style="margin: 15px 0 5px 0;"><strong>Date souhaitée:</strong> ${data.dateDemenagement}</p>` : ''}
     </div>
     
     <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #93c5fd;">
@@ -234,7 +259,7 @@ function createTransporter(data: DevisEmailData) {
       secure: data.entreprise.smtp_port === 465, // true apenas para porta 465, false para 587
       auth: {
         user: data.entreprise.smtp_user,
-        pass: data.entreprise.smtp_password,
+        pass: decrypt(data.entreprise.smtp_password || ''),
       },
       // Configurações adicionais para Hostinger
       tls: {

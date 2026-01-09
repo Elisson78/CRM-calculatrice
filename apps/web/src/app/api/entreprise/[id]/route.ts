@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query, queryOne } from '@/lib/db';
+import { query, authenticatedQuery, authenticatedQueryOne } from '@/lib/db';
+import { getCurrentSession } from '@/lib/auth';
+import { encrypt } from '@/lib/crypto';
 
 // GET - Récupérer une entreprise
 export async function GET(
@@ -7,11 +9,17 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
+    const session = await getCurrentSession();
 
-    const entreprise = await queryOne(
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
+    const entreprise = await authenticatedQueryOne<any>(
       `SELECT * FROM entreprises WHERE id = $1 AND deleted_at IS NULL`,
-      [id]
+      [id],
+      session
     );
 
     if (!entreprise) {
@@ -19,6 +27,11 @@ export async function GET(
         { error: 'Entreprise non trouvée' },
         { status: 404 }
       );
+    }
+
+    // Masquer le mot de passe SMTP pour la sécurité
+    if (entreprise.smtp_password) {
+      entreprise.smtp_password = '********';
     }
 
     return NextResponse.json({ entreprise });
@@ -38,11 +51,16 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
-    console.log('🔧 API PATCH entreprise - ID:', id);
+    const { id } = await params;
+    const session = await getCurrentSession();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
+
+    console.log('🔧 API PATCH entreprise - ID:', id, 'Session:', session.entrepriseId);
 
     const body = await request.json();
-    console.log('📦 Body reçu:', body);
 
     const {
       nom,
@@ -66,14 +84,13 @@ export async function PATCH(
       email_notification_3,
     } = body;
 
-    console.log('📝 Champs extraits:', {
-      nom, email, telephone, adresse,
-      couleur_primaire, couleur_secondaire, couleur_accent,
-      titre_calculatrice, logo_size, use_custom_smtp,
-      email_notification_1, email_notification_2, email_notification_3
-    });
+    // Criptografar senha SMTP se fornecida e não for a máscara
+    let finalSmtpPassword = smtp_password;
+    if (smtp_password && smtp_password !== '********') {
+      finalSmtpPassword = encrypt(smtp_password);
+    }
 
-    const result = await query(
+    const result = await authenticatedQueryOne(
       `UPDATE entreprises SET
         nom = COALESCE($1, nom),
         email = COALESCE($2, email),
@@ -87,7 +104,7 @@ export async function PATCH(
         smtp_host = COALESCE($10, smtp_host),
         smtp_port = COALESCE($11, smtp_port),
         smtp_user = COALESCE($12, smtp_user),
-        smtp_password = COALESCE($13, smtp_password),
+        smtp_password = CASE WHEN $13 = '********' THEN smtp_password ELSE COALESCE($13, smtp_password) END,
         smtp_secure = COALESCE($14, smtp_secure),
         use_custom_smtp = COALESCE($15, use_custom_smtp),
         logo_size = COALESCE($16, logo_size),
@@ -95,23 +112,27 @@ export async function PATCH(
         email_notification_2 = COALESCE($18, email_notification_2),
         email_notification_3 = COALESCE($19, email_notification_3),
         updated_at = NOW()
-      WHERE id = $20`,
+      WHERE id = $20
+      RETURNING id`,
       [
         nom, email, telephone, adresse,
         couleur_primaire, couleur_secondaire, couleur_accent,
         titre_calculatrice, message_formulaire,
-        smtp_host, smtp_port, smtp_user, smtp_password, smtp_secure, use_custom_smtp,
+        smtp_host, smtp_port, smtp_user, finalSmtpPassword, smtp_secure, use_custom_smtp,
         logo_size,
         email_notification_1, email_notification_2, email_notification_3,
         id
-      ]
+      ],
+      session
     );
+
+    if (!result) {
+      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
+    }
 
     // Sincronizar email do usuário se o email da empresa foi alterado
     if (email) {
-      console.log('📧 Sincronizando email do usuário vinculado...');
-
-      const syncResult = await query(
+      await authenticatedQuery(
         `UPDATE users 
          SET email = $1, updated_at = NOW() 
          WHERE id = (
@@ -119,16 +140,14 @@ export async function PATCH(
            FROM entreprises 
            WHERE id = $2 AND user_id IS NOT NULL
          )`,
-        [email, id]
+        [email, id],
+        session
       );
-
-      console.log('✅ Email do usuário sincronizado automaticamente');
     }
 
-    console.log('✅ Update réussi');
     return NextResponse.json({
       success: true,
-      message: 'Entreprise mise à jour avec succès (email sincronizado automaticamente)'
+      message: 'Entreprise mise à jour avec succès'
     });
 
   } catch (error) {

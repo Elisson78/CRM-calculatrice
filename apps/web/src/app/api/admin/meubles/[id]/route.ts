@@ -7,10 +7,10 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { nom, volume_m3, poids_kg, actif } = body;
-    
+
     await query(
       `UPDATE meubles SET
         nom = COALESCE($1, nom),
@@ -20,9 +20,9 @@ export async function PATCH(
       WHERE id = $5`,
       [nom, volume_m3, poids_kg, actif, id]
     );
-    
+
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('Erreur update meuble:', error);
     return NextResponse.json(
@@ -38,12 +38,12 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
-    
+    const { id } = await params;
+
     await query('DELETE FROM meubles WHERE id = $1', [id]);
-    
+
     return NextResponse.json({ success: true });
-    
+
   } catch (error) {
     console.error('Erreur delete meuble:', error);
     return NextResponse.json(
