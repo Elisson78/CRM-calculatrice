@@ -9,6 +9,8 @@ export interface User {
   telephone: string | null;
   avatar_url: string | null;
   email_verified: boolean;
+  reset_password_token?: string | null;
+  reset_password_expires?: Date | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;

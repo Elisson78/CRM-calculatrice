@@ -138,6 +138,53 @@ function getClientEmailTemplate(data: DevisEmailData): string {
   `;
 }
 
+// Template email pour la récupération de mot de passe
+function getPasswordResetEmailTemplate(resetUrl: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Récupération de mot de passe</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">🔑 Récupération de mot de passe</h1>
+  </div>
+  
+  <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+    <p style="margin-top: 0;">Bonjour,</p>
+    
+    <p>Vous avez demandé la réinitialisation de seu mot de passe pour votre compte <strong>Moovelabs</strong>.</p>
+    
+    <p>Cliquez sur le bouton ci-dessous pour définir um nouveau mot de passe. Ce lien est valable pendant 1 heure.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="${resetUrl}" style="background: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
+        Réinitialiser mon mot de passe
+      </a>
+    </div>
+    
+    <p style="font-size: 14px; color: #666;">
+      Si le bouton ne fonctionne pas, copiez e collez le lien suivant dans votre navigateur :<br>
+      <a href="${resetUrl}" style="color: #2563eb; word-break: break-all;">${resetUrl}</a>
+    </p>
+    
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+    
+    <p style="font-size: 12px; color: #9ca3af;">
+      Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email en toute sécurité. Votre mot de passe restera inchangé.
+    </p>
+    
+    <p style="font-size: 12px; color: #9ca3af; margin-bottom: 0;">
+      © ${new Date().getFullYear()} Moovelabs
+    </p>
+  </div>
+</body>
+</html>
+  `;
+}
+
 // Template email pour l'entreprise
 function getEntrepriseEmailTemplate(data: DevisEmailData): string {
   const meublesHTML = data.meubles
@@ -244,9 +291,9 @@ function getEntrepriseEmailTemplate(data: DevisEmailData): string {
 }
 
 // Fonction pour créer le transporter email
-function createTransporter(data: DevisEmailData) {
+function createTransporter(data?: DevisEmailData) {
   // Si l'entreprise utilise un SMTP personnalisé
-  if (data.entreprise.use_custom_smtp && data.entreprise.smtp_host && data.entreprise.smtp_user) {
+  if (data?.entreprise?.use_custom_smtp && data.entreprise.smtp_host && data.entreprise.smtp_user) {
     console.log('🔧 Configuration SMTP personnalisée:');
     console.log(`   - Host: ${data.entreprise.smtp_host}`);
     console.log(`   - Port: ${data.entreprise.smtp_port || 587}`);
@@ -282,6 +329,27 @@ function createTransporter(data: DevisEmailData) {
       pass: process.env.EMAIL_PASS,
     },
   });
+}
+
+// Fonction pour envoyer l'email de récupération de mot de passe
+export async function sendPasswordResetEmail(email: string, token: string): Promise<boolean> {
+  try {
+    const transporter = createTransporter();
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+
+    await transporter.sendMail({
+      from: `"Moovelabs" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: '🔑 Récupération de mot de passe - Moovelabs',
+      html: getPasswordResetEmailTemplate(resetUrl),
+    });
+
+    console.log(`📧 Email de récupération envoyé à: ${email}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur envoi email récupération:', error);
+    return false;
+  }
 }
 
 // Fonction d'envoi d'email
