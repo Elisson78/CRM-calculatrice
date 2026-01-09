@@ -6,7 +6,7 @@ import { encrypt } from '@/lib/crypto';
 // GET - Récupérer une entreprise
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -48,7 +48,7 @@ export async function GET(
 // PATCH - Mettre à jour une entreprise
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;

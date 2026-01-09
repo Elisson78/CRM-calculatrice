@@ -1,27 +1,18 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
-import jwt from 'jsonwebtoken';
+import { getCurrentSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Reativar autenticação após teste
-    // Verificar autenticação e role admin
-    const token = request.cookies.get('auth-token')?.value;
-    
-    // Temporariamente permitir acesso sem token para teste
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
-        if (decoded.role !== 'admin') {
-          return NextResponse.json(
-            { error: 'Acesso negado' }, 
-            { status: 403 }
-          );
-        }
-      } catch (jwtError) {
-        // Token inválido, mas permite continuar para teste
-        console.warn('Token inválido, permitindo acesso para teste:', jwtError);
-      }
+    // Vérifier autenticação e role admin
+    const session = await getCurrentSession();
+
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Acesso negado' },
+        { status: 403 }
+      );
     }
 
     const stripe = getStripe();
@@ -29,9 +20,9 @@ export async function GET(request: NextRequest) {
     // Buscar estatísticas do Stripe
     const [customers, subscriptions] = await Promise.all([
       stripe.customers.list({ limit: 100 }),
-      stripe.subscriptions.list({ 
+      stripe.subscriptions.list({
         status: 'active',
-        limit: 100 
+        limit: 100
       }),
     ]);
 
@@ -57,7 +48,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Erro ao buscar stats Stripe:', error);
     return NextResponse.json(
-      { error: 'Erro interno do servidor' }, 
+      { error: 'Erro interno do servidor' },
       { status: 500 }
     );
   }

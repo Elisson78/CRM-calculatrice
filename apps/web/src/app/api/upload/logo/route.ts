@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
@@ -43,10 +44,10 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const base64Data = buffer.toString('base64');
-    
+
     // Criar data URL completa
     const logoDataUrl = `data:${file.type};base64,${base64Data}`;
-    
+
     console.log(`📦 Convertendo logo para Base64: ${file.type}, ${Math.round(buffer.length / 1024)}KB`);
 
     // Salvar no banco de dados (tanto logo_data quanto logo_url para compatibilidade)

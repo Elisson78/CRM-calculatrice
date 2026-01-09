@@ -4,10 +4,12 @@ import type { Entreprise, CategorieMeuble, Meuble } from '@/types/database';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  let slug = '';
   try {
-    const { slug } = await params;
+    const paramsResolved = await params;
+    slug = paramsResolved.slug;
 
     console.log('🚀 Calculatrice API called with slug:', slug);
     console.log('Looking for entreprise with slug:', slug);
@@ -48,7 +50,7 @@ export async function GET(
       {
         error: 'Erreur serveur',
         details: error instanceof Error ? error.message : 'Erreur inconnue',
-        slug: params.slug
+        slug: slug
       },
       { status: 500 }
     );

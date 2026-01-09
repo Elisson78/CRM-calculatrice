@@ -6,21 +6,23 @@ import { formatVolume } from '@/lib/utils';
 
 export function VolumeDisplay() {
   const { volumeTotal, nombreMeubles, entreprise } = useCalculatriceStore();
-  
+
   const primaryColor = entreprise?.couleur_primaire || '#1e3a5f';
-  
+
   return (
     <div className="text-center py-4">
       <AnimatePresence mode="wait">
         <motion.div
-          key={volumeTotal}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-          className="inline-block"
+          {...{
+            key: volumeTotal,
+            initial: { scale: 0.8, opacity: 0 },
+            animate: { scale: 1, opacity: 1 },
+            exit: { scale: 0.8, opacity: 0 },
+            transition: { type: 'spring', stiffness: 500, damping: 30 },
+            className: "inline-block"
+          } as any}
         >
-          <h2 
+          <h2
             className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold break-words px-2"
             style={{ color: primaryColor }}
           >
@@ -28,12 +30,14 @@ export function VolumeDisplay() {
           </h2>
         </motion.div>
       </AnimatePresence>
-      
+
       {nombreMeubles > 0 && (
         <motion.p
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-slate-500 mt-1 text-sm"
+          {...{
+            initial: { opacity: 0, y: -10 },
+            animate: { opacity: 1, y: 0 },
+            className: "text-slate-500 mt-1 text-sm"
+          } as any}
         >
           {nombreMeubles} {nombreMeubles === 1 ? 'meuble sélectionné' : 'meubles sélectionnés'}
         </motion.p>
@@ -45,18 +49,20 @@ export function VolumeDisplay() {
 // Composant pour la barre de résumé en bas
 export function VolumeSummaryBar() {
   const { volumeTotal, nombreMeubles, setFormulaireVisible, entreprise } = useCalculatriceStore();
-  
+
   const primaryColor = entreprise?.couleur_primaire || '#1e3a5f';
-  
+
   if (nombreMeubles === 0) return null;
-  
+
   return (
     <motion.div
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 100, opacity: 0 }}
-      className="fixed bottom-0 left-0 right-0 z-50"
-      style={{ backgroundColor: primaryColor }}
+      {...{
+        initial: { y: 100, opacity: 0 },
+        animate: { y: 0, opacity: 1 },
+        exit: { y: 100, opacity: 0 },
+        className: "fixed bottom-0 left-0 right-0 z-50",
+        style: { backgroundColor: primaryColor }
+      } as any}
     >
       <div className="container mx-auto px-4 py-3 sm:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -68,7 +74,7 @@ export function VolumeSummaryBar() {
               {nombreMeubles} {nombreMeubles === 1 ? 'meuble' : 'meubles'}
             </p>
           </div>
-          
+
           <button
             onClick={() => setFormulaireVisible(true)}
             className="w-full sm:w-auto bg-white text-slate-800 px-6 py-2.5 sm:py-3 rounded-lg font-semibold

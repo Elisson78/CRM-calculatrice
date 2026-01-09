@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, findUserById, AUTH_COOKIE_NAME } from '@/lib/auth';
 import { authenticatedQueryOne } from '@/lib/db';

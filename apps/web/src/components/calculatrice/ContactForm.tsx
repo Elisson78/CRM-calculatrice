@@ -128,18 +128,22 @@ export function ContactForm() {
     <AnimatePresence>
       {formulaireVisible && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-          onClick={handleClose}
+          {...{
+            initial: { opacity: 0 },
+            animate: { opacity: 1 },
+            exit: { opacity: 0 },
+            className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50",
+            onClick: handleClose
+          } as any}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+            {...{
+              initial: { scale: 0.9, opacity: 0 },
+              animate: { scale: 1, opacity: 1 },
+              exit: { scale: 0.9, opacity: 0 },
+              className: "bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto",
+              onClick: (e: any) => e.stopPropagation()
+            } as any}
           >
             {/* Header */}
             <div
@@ -166,9 +170,11 @@ export function ContactForm() {
             {/* Contenu */}
             {submitSuccess ? (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-8 text-center"
+                {...{
+                  initial: { opacity: 0, y: 20 },
+                  animate: { opacity: 1, y: 0 },
+                  className: "p-8 text-center"
+                } as any}
               >
                 <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
                 <h3 className="text-2xl font-bold text-green-600 mb-2">

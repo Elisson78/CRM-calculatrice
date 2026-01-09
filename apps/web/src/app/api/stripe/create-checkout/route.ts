@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripe, getPriceIdForPlan, getOrCreateStripeCustomer } from '@/lib/stripe';
 import { query, queryOne } from '@/lib/db';
@@ -74,14 +75,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Obter URL base
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                   request.headers.get('origin') || 
-                   'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+      request.headers.get('origin') ||
+      'http://localhost:3000';
 
     // Verificar se a empresa já tem uma assinatura ativa
     if (entreprise.subscription_status === 'active' && entreprise.stripe_subscription_id) {
       return NextResponse.json(
-        { 
+        {
           error: 'Vous avez déjà un abonnement actif. Utilisez le portail de facturation pour modifier votre plan.',
           usePortal: true,
           redirectToPortal: true
@@ -127,13 +128,13 @@ export async function POST(request: NextRequest) {
     console.error('Type d\'erreur:', error.type);
     console.error('Code d\'erreur:', error.code);
     console.error('🔧 DEBUG - Variáveis Stripe:');
-    console.error('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? 
+    console.error('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ?
       `${process.env.STRIPE_SECRET_KEY.substring(0, 12)}***${process.env.STRIPE_SECRET_KEY.slice(-4)}` : 'NÃO DEFINIDO');
     console.error('STRIPE_PRICE_ID_BASIC:', process.env.STRIPE_PRICE_ID_BASIC || 'NÃO DEFINIDO');
     console.error('NODE_ENV:', process.env.NODE_ENV);
-    
+
     let errorMessage = 'Erreur lors de la création du checkout';
-    
+
     if (error.type === 'StripeAuthenticationError') {
       errorMessage = 'Configuration Stripe invalide. Vérifiez les clés API.';
     } else if (error.message?.includes('price')) {
@@ -141,9 +142,9 @@ export async function POST(request: NextRequest) {
     } else if (error.message) {
       errorMessage = error.message;
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
         details: error.message,
         debug: {

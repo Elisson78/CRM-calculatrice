@@ -5,7 +5,7 @@ import { getCurrentSession } from '@/lib/auth';
 // GET - Récupérer un devis avec ses meubles
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -53,7 +53,7 @@ export async function GET(
 // PATCH - Mettre à jour un devis (statut, montant, nombre de déménageurs, etc.)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;

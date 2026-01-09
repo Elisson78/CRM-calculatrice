@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 // PATCH - Mettre à jour une entreprise (admin)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -34,7 +34,7 @@ export async function PATCH(
 // DELETE - Supprimer une entreprise (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
