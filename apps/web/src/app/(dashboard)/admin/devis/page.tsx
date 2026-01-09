@@ -21,7 +21,11 @@ import {
     ChevronRight,
     ArrowUpDown,
     ArrowUp,
-    ArrowDown
+    ArrowDown,
+    Pencil,
+    Trash2,
+    AlertTriangle,
+    X
 } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 
@@ -66,6 +70,17 @@ export default function AdminDevisPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [selectedDevis, setSelectedDevis] = useState<string[]>([]);
+
+    // Edit Modal State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingDevis, setEditingDevis] = useState<Devis | null>(null);
+    const [editForm, setEditForm] = useState<any>({});
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Delete Modal State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deletingDevisId, setDeletingDevisId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         checkAdmin();
@@ -166,6 +181,77 @@ export default function AdminDevisPage() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handleEdit = (devisItem: Devis) => {
+        setEditingDevis(devisItem);
+        setEditForm({
+            client_nom: devisItem.client_nom,
+            client_email: devisItem.client_email,
+            client_telephone: devisItem.client_telephone || '',
+            adresse_depart: devisItem.adresse_depart,
+            adresse_arrivee: devisItem.adresse_arrivee,
+            statut: devisItem.statut,
+            volume_total_m3: devisItem.volume_total_m3,
+            date_demenagement: devisItem.date_demenagement ? devisItem.date_demenagement.split('T')[0] : '',
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingDevis) return;
+
+        setIsSaving(true);
+        try {
+            const response = await fetch(`/api/admin/devis/${editingDevis.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editForm),
+            });
+
+            if (response.ok) {
+                await fetchDevis();
+                setIsEditModalOpen(false);
+                setEditingDevis(null);
+            } else {
+                alert('Erreur lors de la mise à jour');
+            }
+        } catch (error) {
+            console.error('Erreur update:', error);
+            alert('Erreur serveur');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteClick = (devisId: string) => {
+        setDeletingDevisId(devisId);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deletingDevisId) return;
+
+        setIsDeleting(true);
+        try {
+            const response = await fetch(`/api/admin/devis/${deletingDevisId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                setDevis(prev => prev.filter(d => d.id !== deletingDevisId));
+                setIsDeleteModalOpen(false);
+                setDeletingDevisId(null);
+            } else {
+                alert('Erreur lors de la suppression');
+            }
+        } catch (error) {
+            console.error('Erreur delete:', error);
+            alert('Erreur serveur');
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     let filteredDevis = devis.filter(d => {
@@ -366,7 +452,7 @@ export default function AdminDevisPage() {
                                             <td className="px-6 py-4">
                                                 <span className="text-xs text-slate-600">{formatDate(d.created_at)}</span>
                                             </td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                                                 <Link
                                                     href={`/calculatrice/${d.entreprise_slug}`}
                                                     target="_blank"
@@ -375,6 +461,20 @@ export default function AdminDevisPage() {
                                                 >
                                                     <Eye className="w-4 h-4 text-slate-400" />
                                                 </Link>
+                                                <button
+                                                    onClick={() => handleEdit(d)}
+                                                    className="p-2 hover:bg-slate-100 rounded-lg inline-flex items-center"
+                                                    title="Modifier"
+                                                >
+                                                    <Pencil className="w-4 h-4 text-slate-400" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(d.id)}
+                                                    className="p-2 hover:bg-red-50 rounded-lg inline-flex items-center"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                                </button>
                                             </td>
                                         </tr>
                                     );
@@ -428,6 +528,153 @@ export default function AdminDevisPage() {
                     )}
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                            <h2 className="text-lg font-bold text-slate-800">Modifier le Devis {editingDevis?.numero}</h2>
+                            <button onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                                <X className="w-5 h-5 text-slate-500" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdate} className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Nom du client</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={editForm.client_nom}
+                                        onChange={(e) => setEditForm({ ...editForm, client_nom: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Email</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={editForm.client_email}
+                                        onChange={(e) => setEditForm({ ...editForm, client_email: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Téléphone</label>
+                                    <input
+                                        type="tel"
+                                        value={editForm.client_telephone}
+                                        onChange={(e) => setEditForm({ ...editForm, client_telephone: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Statut</label>
+                                    <select
+                                        value={editForm.statut}
+                                        onChange={(e) => setEditForm({ ...editForm, statut: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    >
+                                        {Object.entries(statutColors).map(([key, { label }]) => (
+                                            <option key={key} value={key}>{label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Adresse de départ</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={editForm.adresse_depart}
+                                        onChange={(e) => setEditForm({ ...editForm, adresse_depart: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Adresse d'arrivée</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={editForm.adresse_arrivee}
+                                        onChange={(e) => setEditForm({ ...editForm, adresse_arrivee: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Volume (m³)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        required
+                                        value={editForm.volume_total_m3}
+                                        onChange={(e) => setEditForm({ ...editForm, volume_total_m3: parseFloat(e.target.value) })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-semibold text-slate-500 uppercase">Date déménagement</label>
+                                    <input
+                                        type="date"
+                                        value={editForm.date_demenagement}
+                                        onChange={(e) => setEditForm({ ...editForm, date_demenagement: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                    className="px-6 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 font-medium transition-all"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="px-6 py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 font-medium transition-all shadow-lg shadow-primary-200 disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enregistrer'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Modal */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 text-center">
+                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <AlertTriangle className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">Confirmer la suppression</h3>
+                            <p className="text-slate-500 mb-6">
+                                Êtes-vous sûr de vouloir supprimer ce devis ? Cette action est irréversible et supprimera également tous les meubles associés.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setIsDeleteModalOpen(false)}
+                                    className="flex-1 px-4 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 font-medium transition-all"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={handleConfirmDelete}
+                                    disabled={isDeleting}
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-medium transition-all shadow-lg shadow-red-200 disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Supprimer'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 }
