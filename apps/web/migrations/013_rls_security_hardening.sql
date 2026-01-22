@@ -7,11 +7,18 @@
 -- A regra garante que:
 -- - Ou o empresa_id bate exatamente com o contexto da sessão (que deve ser não vazio)
 -- - Ou o usuário é um admin.
+-- USING: controla SELECT, UPDATE, DELETE
+-- WITH CHECK: controla INSERT, UPDATE (garante que novos dados também respeitam a regra)
 DROP POLICY IF EXISTS devis_isolation ON devis;
 
 CREATE POLICY devis_isolation ON devis
     FOR ALL
     USING (
+        (entreprise_id::text = current_setting('app.current_entreprise_id', true) AND current_setting('app.current_entreprise_id', true) <> '')
+        OR
+        current_setting('app.current_user_role', true) = 'admin'
+    )
+    WITH CHECK (
         (entreprise_id::text = current_setting('app.current_entreprise_id', true) AND current_setting('app.current_entreprise_id', true) <> '')
         OR
         current_setting('app.current_user_role', true) = 'admin'
@@ -26,6 +33,11 @@ CREATE POLICY client_isolation ON clients
         (entreprise_id::text = current_setting('app.current_entreprise_id', true) AND current_setting('app.current_entreprise_id', true) <> '')
         OR
         current_setting('app.current_user_role', true) = 'admin'
+    )
+    WITH CHECK (
+        (entreprise_id::text = current_setting('app.current_entreprise_id', true) AND current_setting('app.current_entreprise_id', true) <> '')
+        OR
+        current_setting('app.current_user_role', true) = 'admin'
     );
 
 -- 3. Fortalecer a política de isolamento de logs
@@ -34,6 +46,11 @@ DROP POLICY IF EXISTS logs_isolation ON logs_activite;
 CREATE POLICY logs_isolation ON logs_activite
     FOR ALL
     USING (
+        (entreprise_id::text = current_setting('app.current_entreprise_id', true) AND current_setting('app.current_entreprise_id', true) <> '')
+        OR
+        current_setting('app.current_user_role', true) = 'admin'
+    )
+    WITH CHECK (
         (entreprise_id::text = current_setting('app.current_entreprise_id', true) AND current_setting('app.current_entreprise_id', true) <> '')
         OR
         current_setting('app.current_user_role', true) = 'admin'
@@ -48,6 +65,11 @@ CREATE POLICY user_write_self ON users
         (id::text = current_setting('app.current_user_id', true) AND current_setting('app.current_user_id', true) <> '')
         OR
         current_setting('app.current_user_role', true) = 'admin'
+    )
+    WITH CHECK (
+        (id::text = current_setting('app.current_user_id', true) AND current_setting('app.current_user_id', true) <> '')
+        OR
+        current_setting('app.current_user_role', true) = 'admin'
     );
 
 -- 5. Fortalecer a política de empresas - Garante que empresa só vê a si mesma
@@ -56,6 +78,11 @@ DROP POLICY IF EXISTS entreprise_isolation ON entreprises;
 CREATE POLICY entreprise_isolation ON entreprises
     FOR ALL
     USING (
+        (id::text = current_setting('app.current_entreprise_id', true) AND current_setting('app.current_entreprise_id', true) <> '')
+        OR
+        current_setting('app.current_user_role', true) = 'admin'
+    )
+    WITH CHECK (
         (id::text = current_setting('app.current_entreprise_id', true) AND current_setting('app.current_entreprise_id', true) <> '')
         OR
         current_setting('app.current_user_role', true) = 'admin'
