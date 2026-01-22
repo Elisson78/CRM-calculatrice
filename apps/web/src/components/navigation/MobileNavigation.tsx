@@ -37,11 +37,11 @@ export default function MobileNavigation({ className = '' }: MobileNavigationPro
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-40"
             onClick={() => setIsOpen(false)}
           />
-          
+
           {/* Menu Content */}
           <div className="fixed top-0 right-0 w-80 max-w-[85vw] h-full bg-white z-50 shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -59,7 +59,7 @@ export default function MobileNavigation({ className = '' }: MobileNavigationPro
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <nav className="p-6">
               <ul className="space-y-4">
                 {navLinks.map((link) => (
@@ -74,7 +74,7 @@ export default function MobileNavigation({ className = '' }: MobileNavigationPro
                   </li>
                 ))}
               </ul>
-              
+
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <Link
                   href="/register"

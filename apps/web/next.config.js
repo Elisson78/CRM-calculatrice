@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['lucide-react'],
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
   images: {
     remotePatterns: [
       {
@@ -17,7 +21,7 @@ const nextConfig = {
     const allowedOrigins = isProduction
       ? ['https://calculateur.moovelabs.com']
       : ['http://localhost:3000'];
-    
+
     return [
       {
         source: '/api/:path*',

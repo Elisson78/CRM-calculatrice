@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import MobileNavigation from './MobileNavigation';
 
@@ -16,7 +18,7 @@ export default function Header({ className = '' }: HeaderProps) {
           </div>
           <span className="text-white font-bold text-xl">Moovelabs</span>
         </Link>
-        
+
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6">
           <Link
