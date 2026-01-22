@@ -85,3 +85,11 @@ secrets*
 
 
 
+
+# Pastas e arquivos locais/temporarios
+agents/
+PACOTE_CLIENTE/
+calculadora vsr demenagement/
+*.zip
+apps/web/scripts/*.js
+scripts/*.js
