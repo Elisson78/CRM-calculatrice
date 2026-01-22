@@ -24,6 +24,24 @@ export interface SessionContext {
 
 // Fonction para configurar o contexto da sessão no PostgreSQL
 async function setSessionContext(client: PoolClient, context: SessionContext): Promise<void> {
+  // SECURITÉ CRITIQUE: En production, on force l'utilisation du rôle restreint
+  // pour garantir que le RLS est actif, même si la connexion est faite en superuser.
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      await client.query("SET LOCAL ROLE moover_app_user");
+    } catch (error) {
+      console.error("CRITICAL SECURITY ERROR: Failed to switch to restricted role 'moover_app_user'", error);
+      throw new Error("Security enforcement failed: Could not switch to restricted role.");
+    }
+  } else {
+    // En dev, on essaye mais on ne bloque pas si le rôle n'existe pas
+    try {
+      await client.query("SET LOCAL ROLE moover_app_user");
+    } catch (e) {
+      // Ignorer en dev si le rôle n'existe pas
+    }
+  }
+
   // Usamos set_config para definir variáveis de sessão que o RLS usará
   // O terceiro parâmetro 'true' torna a configuração local à transação atual
   if (context.userId) {
