@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+// Force rebuild trigger: 2026-01-22
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['lucide-react'],
