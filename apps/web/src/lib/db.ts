@@ -36,9 +36,17 @@ async function setSessionContext(client: PoolClient, context: SessionContext): P
   } else {
     // En dev, on essaye mais on ne bloque pas si le rôle n'existe pas
     try {
+      await client.query("SAVEPOINT role_setup");
       await client.query("SET LOCAL ROLE moover_app_user");
+      await client.query("RELEASE SAVEPOINT role_setup");
     } catch (e) {
-      // Ignorer en dev si le rôle n'existe pas
+      // Si ça échoue (ex: rôle n'existe pas), on rollback au savepoint
+      // pour ne pas corrompre la transaction principale
+      try {
+        await client.query("ROLLBACK TO SAVEPOINT role_setup");
+      } catch (rollbackError) {
+        console.warn("Failed to rollback to savepoint:", rollbackError);
+      }
     }
   }
 

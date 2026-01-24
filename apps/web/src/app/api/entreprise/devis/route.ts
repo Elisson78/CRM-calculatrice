@@ -14,8 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Com RLS, não precisamos filtrar manualmente por entreprise_id se o contexto estiver setado.
-    // O authenticatedQuery cuidará de executar o SET LOCAL app.current_entreprise_id
+    // Fix: Force explicit filtering by entreprise_id to handle cases where RLS is bypassed (e.g. superuser)
     const devis = await authenticatedQuery(
       `SELECT 
         id, numero, client_nom, client_email, client_telephone,
@@ -26,8 +25,9 @@ export async function GET(request: NextRequest) {
         nombre_demenageurs,
         created_at
       FROM devis
+      WHERE entreprise_id = $1
       ORDER BY created_at DESC`,
-      [],
+      [session.entrepriseId],
       {
         userId: session.userId,
         entrepriseId: session.entrepriseId,
