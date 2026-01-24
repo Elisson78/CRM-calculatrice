@@ -1,16 +1,34 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
+import { getCurrentSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const entrepriseId = searchParams.get('entrepriseId');
 
-    if (!entrepriseId) {
+    const session = await getCurrentSession();
+
+    if (!session || (!session.entrepriseId && session.role !== 'admin')) {
       return NextResponse.json(
-        { error: 'ID entreprise requis' },
-        { status: 400 }
+        { error: 'Accès non autorisé' },
+        { status: 401 }
+      );
+    }
+
+    // Security: Ensure the requested enterpriseId matches the session (or user is admin)
+    // If param is missing, default to session's enterpriseId
+    let entrepriseId = searchParams.get('entrepriseId');
+
+    if (!entrepriseId) {
+      entrepriseId = session.entrepriseId!;
+    }
+
+    if (entrepriseId !== session.entrepriseId && session.role !== 'admin') {
+      return NextResponse.json(
+        { error: 'Accès interdit à cette entreprise' },
+        { status: 403 }
       );
     }
 
