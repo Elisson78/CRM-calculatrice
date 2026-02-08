@@ -6,7 +6,6 @@ import { getCurrentSession } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const entrepriseId = searchParams.get('entrepriseId');
 
     const session = await getCurrentSession();
 

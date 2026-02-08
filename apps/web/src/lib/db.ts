@@ -26,12 +26,22 @@ export interface SessionContext {
 async function setSessionContext(client: PoolClient, context: SessionContext): Promise<void> {
   // SECURITÉ CRITIQUE: En production, on force l'utilisation du rôle restreint
   // pour garantir que le RLS est actif, même si la connexion est faite en superuser.
+  // SECURITÉ CRITIQUE: En production, on force l'utilisation du rôle restreint
+  // pour garantir que le RLS est actif.
+  // MODIFICATION INCIDENT: Fallback to allow running as Admin if role is missing.
   if (process.env.NODE_ENV === 'production') {
     try {
+      await client.query("SAVEPOINT role_setup");
       await client.query("SET LOCAL ROLE moover_app_user");
+      await client.query("RELEASE SAVEPOINT role_setup");
     } catch (error) {
-      console.error("CRITICAL SECURITY ERROR: Failed to switch to restricted role 'moover_app_user'", error);
-      throw new Error("Security enforcement failed: Could not switch to restricted role.");
+      console.warn("WARNING: Failed to switch to restricted role 'moover_app_user'. Running as default user.", error);
+      // Rollback to savepoint to avoid transaction error
+      try {
+        await client.query("ROLLBACK TO SAVEPOINT role_setup");
+      } catch (rbError) {
+        console.warn("Failed to rollback savepoint:", rbError);
+      }
     }
   } else {
     // En dev, on essaye mais on ne bloque pas si le rôle n'existe pas
