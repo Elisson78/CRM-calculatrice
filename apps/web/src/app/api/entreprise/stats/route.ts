@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { query, queryOne } from '@/lib/db';
+import { query, queryOne, authenticatedQuery, authenticatedQueryOne } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Statistiques générales
-    const generalStats = await queryOne<{
+    const generalStats = await authenticatedQueryOne<{
       total_devis: string;
       total_volume: string;
       total_meubles: string;
@@ -53,11 +53,12 @@ export async function GET(request: NextRequest) {
         COUNT(*) FILTER (WHERE statut = 'termine') as devis_termine
       FROM devis
       WHERE entreprise_id = $1`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Statistiques du mois en cours
-    const monthStats = await queryOne<{
+    const monthStats = await authenticatedQueryOne<{
       devis_mois: string;
       volume_mois: string;
       accepte_mois: string;
@@ -69,11 +70,12 @@ export async function GET(request: NextRequest) {
       FROM devis
       WHERE entreprise_id = $1
         AND created_at >= DATE_TRUNC('month', CURRENT_DATE)`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Statistiques du mois précédent (pour comparaison)
-    const lastMonthStats = await queryOne<{
+    const lastMonthStats = await authenticatedQueryOne<{
       devis_mois_prec: string;
       volume_mois_prec: string;
       accepte_mois_prec: string;
@@ -86,11 +88,12 @@ export async function GET(request: NextRequest) {
       WHERE entreprise_id = $1
         AND created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
         AND created_at < DATE_TRUNC('month', CURRENT_DATE)`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Statistiques des 7 derniers jours
-    const weekStats = await queryOne<{
+    const weekStats = await authenticatedQueryOne<{
       devis_semaine: string;
       volume_semaine: string;
     }>(
@@ -100,11 +103,12 @@ export async function GET(request: NextRequest) {
       FROM devis
       WHERE entreprise_id = $1
         AND created_at >= CURRENT_DATE - INTERVAL '7 days'`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Devis par jour (7 derniers jours)
-    const devisParJour = await query<{
+    const devisParJour = await authenticatedQuery<{
       jour: string;
       count: string;
     }>(
@@ -116,11 +120,12 @@ export async function GET(request: NextRequest) {
         AND created_at >= CURRENT_DATE - INTERVAL '7 days'
       GROUP BY created_at::date
       ORDER BY created_at::date`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Devis par statut (pour graphique)
-    const devisParStatut = await query<{
+    const devisParStatut = await authenticatedQuery<{
       statut: string;
       count: string;
     }>(
@@ -129,11 +134,12 @@ export async function GET(request: NextRequest) {
        WHERE entreprise_id = $1
        GROUP BY statut
        ORDER BY count DESC`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Top 5 meubles les plus demandés
-    const topMeubles = await query<{
+    const topMeubles = await authenticatedQuery<{
       meuble_nom: string;
       total_quantite: string;
     }>(
@@ -146,17 +152,19 @@ export async function GET(request: NextRequest) {
       GROUP BY dm.meuble_nom
       ORDER BY total_quantite DESC
       LIMIT 5`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Volume moyen par devis
-    const volumeMoyen = await queryOne<{
+    const volumeMoyen = await authenticatedQueryOne<{
       volume_moyen: string;
     }>(
       `SELECT COALESCE(AVG(volume_total_m3), 0) as volume_moyen
        FROM devis
        WHERE entreprise_id = $1`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Taux de conversion (acceptés / total)
@@ -165,23 +173,25 @@ export async function GET(request: NextRequest) {
     const tauxConversion = totalDevis > 0 ? (acceptes / totalDevis) * 100 : 0;
 
     // Clients uniques
-    const clientsUniques = await queryOne<{
+    const clientsUniques = await authenticatedQueryOne<{
       clients_uniques: string;
     }>(
       `SELECT COUNT(DISTINCT client_email) as clients_uniques
        FROM devis
        WHERE entreprise_id = $1`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Derniers devis
-    const derniersDevis = await query(
+    const derniersDevis = await authenticatedQuery(
       `SELECT id, numero, client_nom, client_email, volume_total_m3, statut, created_at
        FROM devis
        WHERE entreprise_id = $1
        ORDER BY created_at DESC
        LIMIT 5`,
-      [entrepriseId]
+      [entrepriseId],
+      session
     );
 
     // Calculer les tendances (comparaison avec mois précédent)
